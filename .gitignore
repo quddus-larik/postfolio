@@ -10,10 +10,6 @@
 !.yarn/releases
 !.yarn/versions
 
-#docxes
-.docxes
-sitemap.xml
-
 # testing
 /coverage
 
