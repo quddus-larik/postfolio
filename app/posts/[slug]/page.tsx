@@ -1,5 +1,7 @@
-import { MDXPost, Slugs } from "@/core"
-import { Content } from "@/core/renderer";
+
+import components from "@/components/mdx-components";
+import { MDXPost, Slugs } from "@postfolio/core";
+import { Content } from "@postfolio/core/renderer";
 import { notFound } from "next/navigation";
 
 
@@ -26,7 +28,7 @@ export default async function Page({
   return(
     <div className="flex flex-col items-center">
       <div className="min-w-md">
-        <Content code={post.code} />
+        <Content components={components} code={post.code} />
       </div>
     </div>
   )

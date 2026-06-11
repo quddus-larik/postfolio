@@ -1,4 +1,4 @@
-import { Slugs } from "@/core";
+import { Slugs } from "@postfolio/core";
 import { Button } from "@heroui/react";
 import Link from "next/link";
 
