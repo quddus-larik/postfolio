@@ -5,11 +5,14 @@ import "./globals.css";
 const geistSans = Google_Sans_Flex({
   variable: "--font-google-flex",
   subsets: ["latin"],
+  preload: true
 });
 
 const geistMono = Google_Sans_Code({
   variable: "--font-google-mono",
   subsets: ["latin"],
+  preload: true,
+  fallback: ['system-ui', 'arial']
 });
 
 export const metadata: Metadata = {
