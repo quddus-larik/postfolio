@@ -1,19 +1,35 @@
 {
-  "name": "postfolio",
+  "name": "@postfolio/core",
   "version": "1.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./renderer": {
+      "types": "./dist/renderer.d.ts",
+      "import": "./dist/renderer.js"
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts"
-  },
-  "devDependencies": {
-    "tsup": "^8.5.1",
-    "typescript": "^6.0.3"
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "react": "^19.2.7"
+    "mdx-bundler": "^10.1.1"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "typescript": "^5"
   }
 }
