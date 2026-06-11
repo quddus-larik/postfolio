@@ -24,7 +24,7 @@ export default async function Page({
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 md:py-12 bg-amber-400">
+    <div className="w-full max-w-4xl mx-auto px-4 py-8 sm:px-6 md:py-12 bg-background">
       <article>
         <Content components={components} code={post.code} />
       </article>
