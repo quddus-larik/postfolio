@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable react-hooks/static-components -- mdx-bundler creates a component from compiled MDX at runtime. */
-
 import * as React from "react";
 import { getMDXComponent } from "mdx-bundler/client";
 
