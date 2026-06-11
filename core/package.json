@@ -11,8 +11,12 @@
       "import": "./index.ts"
     },
     "./renderer": {
-      "types": "./renderer.tsx",
-      "import": "./renderer.tsx"
+      "types": "./src/renderer.tsx",
+      "import": "./src/renderer.tsx"
+    },
+    "./slug": {
+      "types": "./src/slug.ts",
+      "import": "./src/slug.ts"
     }
   },
   "files": [
@@ -31,5 +35,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "esbuild@0.27.7": true
   }
 }

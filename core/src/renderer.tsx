@@ -17,3 +17,4 @@ export function Content({
   // eslint-disable-next-line react-hooks/static-components -- mdx-bundler creates a component from compiled MDX at runtime.
   return <Render components={components} />;
 }
+
