@@ -1,23 +1,288 @@
 ---
-title: "My MDX Page"
-description: "A simple MDX example with front matter"
-date: "2024-06-10"
-tags: ["mdx", "markdown", "react"]
+
+title: "Building Modern Web Applications with MDX"
+description: "A comprehensive MDX document for testing rendering, TOC generation, and content layouts."
+date: "2026-06-11"
+tags: ["mdx", "nextjs", "react", "documentation"]
 author: "Abdul Quddus"
 draft: false
+------------
+
+export const year = 2026;
+
+# Introduction
+
+MDX combines the power of Markdown with JSX, allowing developers to write rich content while still embedding interactive React components.
+
+In {year}, MDX remains one of the most popular solutions for technical blogs, documentation sites, knowledge bases, and developer portfolios.
+
+This document exists primarily to test:
+
+* Heading extraction
+* Table of contents generation
+* Link rendering
+* Lists
+* Tables
+* Blockquotes
+* Code blocks
+* Long-form content
+
+For more information, visit:
+
+* https://nextjs.org
+* https://mdxjs.com
+* https://react.dev
+
 ---
 
+## Why MDX?
 
-export const year = 202679
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer convallis, augue eget luctus faucibus, libero metus sodales purus, quis faucibus neque augue nec massa.
 
-# Last Year's Snowfall
+Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Vivamus ultrices urna vel lectus consectetur, non condimentum risus pretium.
 
-In {year}, the snowfall was above average.
-It was followed by a warm spring.
+Praesent sed lacus vitae velit consequat aliquam. Donec et tortor vel augue convallis pellentesque.
 
+### Developer Experience
 
-## More Content
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse potenti. Nulla facilisi. Morbi hendrerit tortor nec sapien volutpat, vitae porta lorem suscipit.
 
-This is regular Markdown content below the front matter.
+Sed varius, tortor et hendrerit vestibulum, turpis justo posuere est, at accumsan erat turpis non ipsum.
 
-resume: "codex resume 019eb241-bf44-76a1-b222-257419f6cc92"
+### Performance Considerations
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc non malesuada magna. Vivamus facilisis ligula non eros fermentum, sed tincidunt lacus convallis.
+
+Aliquam erat volutpat. Integer sit amet pretium ipsum.
+
+---
+
+## Installation Guide
+
+To begin using MDX, install the required packages.
+
+```bash
+pnpm add mdx-bundler
+pnpm add gray-matter
+pnpm add react
+```
+
+Create a simple MDX file:
+
+```md
+# Hello World
+
+This is an MDX document.
+```
+
+Then render it using your preferred MDX renderer.
+
+---
+
+## Folder Structure
+
+A common project structure might look like:
+
+```txt
+app/
+├─ page.tsx
+├─ posts/
+│  ├─ hello-world.mdx
+│  ├─ nextjs-guide.mdx
+│  └─ react-hooks.mdx
+components/
+├─ mdx-components.tsx
+core/
+├─ parser.ts
+├─ renderer.tsx
+└─ toc.ts
+```
+
+This structure separates rendering logic from content and makes scaling easier.
+
+---
+
+## Routing
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed imperdiet mauris at odio venenatis, quis bibendum nunc vulputate.
+
+### Dynamic Routes
+
+Dynamic routes allow pages to be generated from content.
+
+Example:
+
+```tsx
+export async function generateStaticParams() {
+  return [
+    { slug: "hello-world" },
+    { slug: "react-hooks" }
+  ];
+}
+```
+
+### Static Generation
+
+Static generation provides excellent performance and SEO benefits.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi vitae nisi ac justo elementum consequat.
+
+---
+
+## Styling Content
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+### Typography
+
+Good typography improves readability and user engagement.
+
+Important principles include:
+
+* Proper line height
+* Consistent spacing
+* Readable font sizes
+* Clear heading hierarchy
+
+### Layout
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla porttitor metus vitae sapien luctus, eget lacinia mauris efficitur.
+
+#### Responsive Design
+
+Responsive layouts adapt to different screen sizes.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean pulvinar est sed eros posuere, non scelerisque nisi efficitur.
+
+#### Container Width
+
+A common content width is around 65–75 characters per line.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+---
+
+## Working With Data
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+### Example Table
+
+| Feature  | Status      | Notes                   |
+| -------- | ----------- | ----------------------- |
+| MDX      | Complete    | Stable                  |
+| TOC      | Complete    | Generated automatically |
+| Search   | In Progress | Experimental            |
+| Comments | Planned     | Future release          |
+
+### Example JSON
+
+```json
+{
+  "title": "My Blog Post",
+  "author": "Abdul Quddus",
+  "published": true
+}
+```
+
+---
+
+## Accessibility
+
+Accessibility is a critical aspect of modern web development.
+
+> Building accessible experiences benefits everyone.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum sit amet tincidunt lorem.
+
+### Keyboard Navigation
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+### Screen Readers
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+---
+
+## Search Engine Optimization
+
+Search engines rely on semantic structure and metadata.
+
+Useful resources:
+
+* https://developers.google.com/search
+* https://web.dev
+* https://schema.org
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed at metus vitae leo aliquet aliquam.
+
+---
+
+## Frequently Asked Questions
+
+### What is MDX?
+
+MDX is Markdown combined with JSX.
+
+### Can I use React components?
+
+Yes. MDX supports embedded React components.
+
+### Is MDX suitable for documentation?
+
+Absolutely. Many modern documentation websites are powered by MDX.
+
+### Can I generate a table of contents?
+
+Yes. You can parse headings and build a navigation structure automatically.
+
+---
+
+## Advanced Topics
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+### Content Collections
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+### Syntax Highlighting
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+### Remark Plugins
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+### Rehype Plugins
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+---
+
+## Long Form Example
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur pretium tincidunt tortor, sed malesuada elit tincidunt at.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus commodo erat ac nisl vulputate, sit amet malesuada purus pulvinar.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer id sapien non nisi volutpat porttitor.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam viverra lectus non libero pellentesque, vel suscipit lorem tristique.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse potenti. Donec facilisis eros ut magna gravida, a posuere velit tincidunt.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris feugiat justo nec justo maximus, vitae egestas elit malesuada.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque et sapien in velit commodo scelerisque.
+
+---
+
+## Conclusion
+
+MDX provides a powerful authoring experience that combines structured Markdown content with interactive React components.
+
+By using a consistent heading hierarchy, semantic content, and accessible design patterns, you can build scalable documentation systems, blogs, and developer portfolios.
+
+Thank you for reading.
