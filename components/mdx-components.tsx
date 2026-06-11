@@ -7,16 +7,16 @@ type HTMLProps = ComponentProps<"div">;
 const components = {
   // Headings
   h1: ({ children, ...rest }: HTMLProps) =>
-    <h1 {...rest} className="text-5xl font-bold tracking-tight mb-4">{children}</h1>,
+    <h1 {...rest} className="text-3xl font-bold tracking-tight mb-4">{children}</h1>,
 
   h2: ({ children, ...rest }: HTMLProps) =>
-    <h2 {...rest} className="text-3xl font-semibold tracking-tight mb-3 mt-6">{children}</h2>,
+    <h2 {...rest} className="text-2xl font-semibold tracking-tight mb-3 mt-6">{children}</h2>,
 
   h3: ({ children, ...rest }: HTMLProps) =>
-    <h3 {...rest} className="text-2xl font-semibold mb-2 mt-5">{children}</h3>,
+    <h3 {...rest} className="text-xl font-semibold mb-2 mt-5">{children}</h3>,
 
   h4: ({ children, ...rest }: HTMLProps) =>
-    <h4 {...rest} className="text-xl font-semibold mb-2 mt-4">{children}</h4>,
+    <h4 {...rest} className="text-lg font-semibold mb-2 mt-4">{children}</h4>,
 
   h5: ({ children, ...rest }: HTMLProps) =>
     <h5 {...rest} className="text-base font-semibold mb-1 mt-3">{children}</h5>,

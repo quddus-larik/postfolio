@@ -7,7 +7,7 @@ export default function Page() {
   const data = Slugs();
 
   return (
-    <div className="h-svh flex items-center justify-center flex-col gap-4">
+    <div className="h-svh flex items-center justify-center flex-col gap-4 bg-amber-400">
       <h1 className="text-5xl font-bold">
         Create a Blogs and Posts for{" "}
         <span className="text-accent text-shadow-xl">Portfolios</span>!
