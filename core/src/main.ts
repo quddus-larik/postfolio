@@ -16,6 +16,8 @@ export type BlogFrontmatter = {
   tags?: string[];
   author?: string;
   draft?: boolean;
+
+  [key: string]: string | string[] | boolean | undefined;
 };
 
 export type BlogPostSource = {
@@ -126,7 +128,7 @@ export async function MDXPost(slug: string) {
 
   ensureEsbuildBinaryPath();
 
-  const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({
+  const { code, frontmatter } = await bundleMDX<BlogFrontmatter | any>({
     file: post.filePath,
     cwd: BLOG_DIR_PATH,
   });
