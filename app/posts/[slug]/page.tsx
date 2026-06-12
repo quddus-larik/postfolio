@@ -1,9 +1,6 @@
 import { components } from "@/components/mdx-components";
 import {
   Label,
-  ListBox,
-  Surface,
-  Select,
   Button,
   Typography,
   Description,
@@ -15,6 +12,7 @@ import {
 import { MDXPost, Slugs, generateTOC } from "@postfolio/core";
 import { Content } from "@postfolio/core/renderer";
 import { notFound } from "next/navigation";
+import { TableOfContents } from "@/components/table-of-contents";
 
 export async function generateStaticParams() {
   const slugs = Slugs();
@@ -39,34 +37,37 @@ export default async function Page({
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8 space-y-3">
-      <div className="flex flex-row gap-3">
-        <Avatar>
-          <Avatar.Image src={post.frontmatter["avatar"]} alt="avatar" />
-          <Avatar.Fallback>QL</Avatar.Fallback>
-        </Avatar>
-        <div className="flex flex-col gap-1 justify-start">
-          <Label>Written by</Label>
-          <Description>{post.frontmatter.author}</Description>
+      <div className="bg-background py-4 -mx-4 px-4 space-y-3">
+        <div className="flex flex-row gap-3">
+          <Avatar>
+            <Avatar.Image src={post.frontmatter["avatar"]} alt="avatar" />
+            <Avatar.Fallback>QL</Avatar.Fallback>
+          </Avatar>
+          <div className="flex flex-col gap-1 justify-start">
+            <Label>Written by</Label>
+            <Description>{post.frontmatter.author}</Description>
+          </div>
+          <Separator orientation="vertical" />
+          <div className="flex flex-col gap-1 justify-start">
+            <Label>At</Label>
+            <Description>{post.frontmatter.date}</Description>
+          </div>
         </div>
-        <Separator orientation="vertical" />
-        <div className="flex flex-col gap-1 justify-start">
-          <Label>At</Label>
-          <Description>{post.frontmatter.date}</Description>
+        <div className="flex flex-row gap-1 justify-start">
+          {post.frontmatter.tags?.map((itm) => (
+            <Chip variant="primary" color="accent">
+              {itm}
+            </Chip>
+          ))}
         </div>
-      </div>
-      <div className="flex flex-row gap-1 justify-start">
-        {post.frontmatter.tags?.map((itm) => (
-          <Chip variant="primary" color="accent">
-            {itm}
-          </Chip>
-        ))}
-      </div>
-      <div className="flex flex-row gap-1 justify-between items-center">
-        <Button size="sm" variant="outline">Github</Button>
-        <ButtonGroup variant="tertiary">
-          <Button size="sm">Copy Markdown</Button>
-          <Button size="sm">Open</Button>
-        </ButtonGroup>
+        <div className="flex flex-row gap-1 justify-between items-start">
+          <Button size="sm">Github</Button>
+          <ButtonGroup variant="tertiary">
+            <Button size="sm">Copy Markdown</Button>
+            <Button size="sm">Open</Button>
+          </ButtonGroup>
+        </div>
+        <TableOfContents toc={toc} />
       </div>
       <article className="space-y-3">
         <div className="h-32 w-full">
@@ -83,41 +84,11 @@ export default async function Page({
           </Description>
         </div>
         <Content components={components} code={post.code} />
+        <div className="flex flex-col gap-1 justify-start">
+          <Label>Source</Label>
+          <Description>{post.frontmatter.source}</Description>
+        </div>
       </article>
-
-      <Surface
-        className="flex min-w-[320px] gap-2 rounded-3xl p-3 fixed bottom-2 right-2"
-        variant="tertiary"
-      >
-        <Select
-          className="flex-1"
-          placeholder="Table of content"
-          aria-label="Table of contents"
-        >
-          <Select.Trigger>
-            <Select.Value />
-            <Select.Indicator />
-          </Select.Trigger>
-          <Select.Popover>
-            <ListBox>
-              {toc.map((itm) => (
-                <ListBox.Item
-                  aria-label={itm.text}
-                  key={itm.slug}
-                  id={itm.slug}
-                  href={`#${itm.slug}`}
-                  textValue={itm.text}
-                >
-                  {itm.text}
-                </ListBox.Item>
-              ))}
-            </ListBox>
-          </Select.Popover>
-        </Select>
-        <Button isIconOnly aria-label="Open options">
-          O
-        </Button>
-      </Surface>
     </div>
   );
 }

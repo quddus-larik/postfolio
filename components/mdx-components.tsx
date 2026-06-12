@@ -4,7 +4,7 @@ import { type ComponentProps } from "react";
 
 type HTMLProps = ComponentProps<"div">;
 import { Typography } from "@heroui/react";
-import { generateSlug } from "@postfolio/core/slug";
+import { generateSlug } from "@postfolio/core/client";
 
 
 export const components: any = {
