@@ -11,7 +11,7 @@ export function TableOfContents({
   const activeId = useActiveHeading();
 
   return (
-    <Accordion className="w-full" defaultExpandedKeys={["toc"]} variant="surface">
+    <Accordion className="w-full" variant="surface">
       <Accordion.Item id="toc">
         <Accordion.Heading>
           <Accordion.Trigger className="text-sm font-semibold">

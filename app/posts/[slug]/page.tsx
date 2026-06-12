@@ -2,19 +2,20 @@ import { components } from "@/components/mdx-components";
 import {
   Label,
   Button,
-  Typography,
   Description,
   Separator,
   Chip,
   Avatar,
   ButtonGroup,
 } from "@heroui/react";
-import { MDXPost, Slugs, generateTOC } from "@postfolio/core";
+import path from "node:path";
+import { MDXPost, Slugs, generateTOC, setContentDirectory } from "@postfolio/core";
 import { Content } from "@postfolio/core/renderer";
 import { notFound } from "next/navigation";
 import { TableOfContents } from "@/components/table-of-contents";
 
 export async function generateStaticParams() {
+  setContentDirectory(path.join(process.cwd(), "content", "blogs"));
   const slugs = Slugs();
 
   return slugs.map((itm) => ({
@@ -27,6 +28,7 @@ export default async function Page({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  setContentDirectory(path.join(process.cwd(), "content", "blogs"));
   const { slug } = await params;
   const post = await MDXPost(slug);
 
@@ -55,13 +57,17 @@ export default async function Page({
         </div>
         <div className="flex flex-row gap-1 justify-start">
           {post.frontmatter.tags?.map((itm) => (
-            <Chip variant="primary" color="accent">
+            <Chip size="sm" key={itm} variant="primary" color="accent">
               {itm}
             </Chip>
           ))}
         </div>
         <div className="flex flex-row gap-1 justify-between items-start">
-          <Button size="sm">Github</Button>
+          <div className="flex gap-2 items-center">
+          <Button size="sm" variant="tertiary">Github</Button>
+          <Button size="sm" variant="tertiary">Twitter X</Button>
+          <Button size="sm" variant="tertiary">Instagram</Button>
+          </div>
           <ButtonGroup variant="tertiary">
             <Button size="sm">Copy Markdown</Button>
             <Button size="sm">Open</Button>
