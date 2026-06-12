@@ -3,7 +3,11 @@ import path from "node:path";
 
 import { bundleMDX } from "mdx-bundler";
 
-const BLOG_DIR_PATH = path.join(process.cwd(), "content", "blogs");
+let BLOG_DIR_PATH = path.join(process.cwd(), "content", "blogs");
+
+export function setContentDirectory(newPath: string) {
+  BLOG_DIR_PATH = newPath;
+}
 const ESBUILD_BINARY_PATH =
   process.platform === "win32"
     ? path.join(process.cwd(), "node_modules", "esbuild", "esbuild.exe")
