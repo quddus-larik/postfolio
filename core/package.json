@@ -2,20 +2,20 @@
   "name": "postfolio",
   "version": "1.0.0",
   "type": "module",
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./index.ts",
-      "import": "./index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./renderer": {
-      "types": "./src/renderer.tsx",
-      "import": "./src/renderer.tsx"
+      "types": "./dist/src/renderer.d.ts",
+      "import": "./dist/src/renderer.js"
     },
     "./client": {
-      "types": "./src/client.ts",
-      "import": "./src/client.ts"
+      "types": "./dist/src/client.d.ts",
+      "import": "./dist/src/client.js"
     }
   },
   "files": [
