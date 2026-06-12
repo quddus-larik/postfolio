@@ -14,9 +14,9 @@
       "types": "./src/renderer.tsx",
       "import": "./src/renderer.tsx"
     },
-    "./slug": {
-      "types": "./src/slug.ts",
-      "import": "./src/slug.ts"
+    "./client": {
+      "types": "./src/client.ts",
+      "import": "./src/client.ts"
     }
   },
   "files": [
