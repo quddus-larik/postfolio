@@ -56,7 +56,7 @@ export default async function Page({
           </div>
         </div>
         <div className="flex flex-row gap-1 justify-start">
-          {post.frontmatter.tags?.map((itm) => (
+          {post.frontmatter.tags?.map((itm: any) => (
             <Chip size="sm" key={itm} variant="primary" color="accent">
               {itm}
             </Chip>

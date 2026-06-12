@@ -1,8 +1,16 @@
 "use client";
-
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-export function generateSlug(text: string) {
-  return text
+
+export function generateSlug(text: string | ReactNode | undefined): string {
+  if (text === undefined) {
+    return "";
+  }
+  const textString = typeof text === "string" 
+    ? text 
+    : String(text);
+
+  return textString
     .toLowerCase()
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-");
