@@ -1,4 +1,4 @@
-import { allPosts, Slugs } from "@postfolio/core";
+import { allPosts, Slugs } from "postfolio";
 import { Button, Card, Chip } from "@heroui/react";
 export default async function Page() {
   const data = await allPosts();

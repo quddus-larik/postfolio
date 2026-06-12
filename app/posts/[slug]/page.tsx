@@ -9,8 +9,8 @@ import {
   ButtonGroup,
 } from "@heroui/react";
 import path from "node:path";
-import { MDXPost, Slugs, generateTOC, setContentDirectory } from "@postfolio/core";
-import { Content } from "@postfolio/core/renderer";
+import { MDXPost, Slugs, generateTOC, setContentDirectory } from "postfolio";
+import { Content } from "postfolio/renderer";
 import { notFound } from "next/navigation";
 import { TableOfContents } from "@/components/table-of-contents";
 

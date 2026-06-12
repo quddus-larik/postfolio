@@ -1,6 +1,6 @@
 "use client";
 
-import { useActiveHeading } from "@postfolio/core/client";
+import { useActiveHeading } from "postfolio/client";
 import { Accordion, ListBox } from "@heroui/react";
 
 export function TableOfContents({
