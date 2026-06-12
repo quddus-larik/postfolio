@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# postfolio
 
-## Getting Started
+**postfolio** is a plug-and-play toolkit to easily integrate blogs into your web-based portfolios. 
 
-First, run the development server:
+Whether you are a developer, designer, or creator, `postfolio` simplifies adding a full-featured blog section to your website. It provides out-of-the-box utility functions while letting you maintain complete control over your custom UI.
+
+## Features
+
+- **Plug and Play**: Effortlessly drop a blog into your existing portfolio site.
+- **Custom UI Ready**: We provide the data and pre-built functions; you build the design exactly how you want it. 
+- **Table of Contents**: Easily generate a Table of Contents (TOC) from your headings with our pre-built generator, and track scroll position using our client hooks.
+- **Powered by `mdx-bundler`**: We leverage the actively maintained and highly capable `mdx-bundler` to parse and render your MDX content, giving you the ability to embed React components right inside your markdown files.
+- **Customizable Source**: Store your markdown files anywhere! Customize the content directory path at runtime.
+
+## Installation
 
 ```bash
-npm run dev
+npm install postfolio
 # or
-yarn dev
+pnpm add postfolio
 # or
-pnpm dev
-# or
-bun dev
+yarn add postfolio
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Quick Start
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Fetch your posts and render your blog index:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```tsx
+import path from "node:path";
+import { setContentDirectory, allPosts } from "postfolio";
 
-## Learn More
+// Optionally set a custom directory for your markdown files
+setContentDirectory(path.join(process.cwd(), "content", "blogs"));
 
-To learn more about Next.js, take a look at the following resources:
+export default async function BlogIndex() {
+  const posts = await allPosts();
+  
+  return (
+    <div>
+      {posts.map(post => (
+        <a key={post.slug} href={`/posts/${post.slug}`}>
+          {post.frontmatter.title}
+        </a>
+      ))}
+    </div>
+  );
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Render MDX content and extract the Table of Contents:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```tsx
+import { MDXPost, generateTOC } from "postfolio";
+import { Content } from "postfolio/renderer";
 
-## Deploy on Vercel
+export default async function BlogPost({ params }) {
+  const { slug } = await params;
+  const post = await MDXPost(slug);
+  const toc = generateTOC(post.raw);
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+  return (
+    <article>
+      <h1>{post.frontmatter.title}</h1>
+      
+      {/* Pass your custom React components map here */}
+      <Content components={{}} code={post.code} />
+      
+      {/* Build your custom TOC UI here using the generated `toc` array */}
+    </article>
+  );
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Client Hooks
+
+If you need a Table of Contents with an active scroll spy, you can import our client hooks to build interactive UI:
+
+```tsx
+"use client";
+import { useActiveHeading } from "postfolio/client";
+
+export function TableOfContents({ toc }) {
+  // Automatically tracks which heading is currently visible on the screen
+  const activeId = useActiveHeading();
+  
+  return (
+    <ul>
+      {toc.map(item => (
+        <li key={item.slug} className={activeId === item.slug ? 'font-bold' : ''}>
+          <a href={`#${item.slug}`}>{item.text}</a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+---
+
+*Focus on your portfolio's design, and let postfolio handle the blogging engine.*
