@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@postfolio/core"],
+  transpilePackages: ["postfolio"],
   serverExternalPackages: ["esbuild", "mdx-bundler"],
 };
 

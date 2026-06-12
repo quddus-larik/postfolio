@@ -12,7 +12,7 @@
   "dependencies": {
     "@heroui/react": "^3.1.0",
     "@heroui/styles": "^3.1.0",
-    "@postfolio/core": "workspace:*",
+    "postfolio": "workspace:*",
     "esbuild": "^0.28.0",
     "gray-matter": "^4.0.3",
     "mdx-bundler": "^10.1.1",
