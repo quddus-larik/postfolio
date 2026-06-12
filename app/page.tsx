@@ -1,8 +1,7 @@
-import { Slugs } from "@postfolio/core";
-import { Button } from "@heroui/react";
-import Link from "next/link";
-export default function Page() {
-  const data = Slugs();
+import { allPosts, Slugs } from "@postfolio/core";
+import { Button, Card, Chip } from "@heroui/react";
+export default async function Page() {
+  const data = await allPosts();
 
   return (
     <div className="h-svh flex items-center justify-center flex-col gap-4">
@@ -15,10 +14,20 @@ export default function Page() {
         <Button>Github</Button>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-2">
-          {data.map((slug) => (
-            <Link key={slug} href={`/posts/${slug}`}>
-              <Button variant="secondary">{slug}</Button>
-            </Link>
+          {data.map((itm) => (
+            <Card>
+              <Card.Header>
+                <Card.Title>{itm.frontmatter.title}</Card.Title>
+              </Card.Header>
+              <Card.Content>
+                <Card.Description>{itm.frontmatter.description}</Card.Description>
+              </Card.Content>
+              <Card.Footer className="flex items-center gap-1">
+                {itm.frontmatter.tags.map((itm: any)=>(
+                  <Chip key={idx+itm} variant="primary" color="accent" size="sm">{itm}</Chip>
+                ))}
+              </Card.Footer>
+            </Card>
           ))}
       </div>
     </div>
