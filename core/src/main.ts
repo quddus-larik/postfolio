@@ -29,6 +29,7 @@ export type BlogPostSource = {
   filename: string;
   filePath: string;
   mdx: string;
+  frontmatter?: any;
 };
 
 function ensureEsbuildBinaryPath() {
@@ -117,10 +118,22 @@ export function Post(slug: string): BlogPostSource | undefined {
   return getPostSourceBySlug(slug);
 }
 
-export function allPosts(): BlogPostSource[] {
-  return Slugs()
+export async function allPosts(): Promise<BlogPostSource[]> {
+  ensureEsbuildBinaryPath();
+
+  const posts = Slugs()
     .map(getPostSourceBySlug)
     .filter((post): post is BlogPostSource => Boolean(post));
+
+  return Promise.all(
+    posts.map(async (post) => {
+      const { frontmatter } = await bundleMDX<BlogFrontmatter | any>({
+        file: post.filePath,
+        cwd: BLOG_DIR_PATH,
+      });
+      return { ...post, frontmatter };
+    })
+  );
 }
 
 export async function MDXPost(slug: string) {
