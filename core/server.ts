@@ -7,6 +7,6 @@ export {
   generateSlug,
   generateTOC,
   setContentDirectory,
-} from "./src/main.js";
-export type { BlogFrontmatter, BlogPostSource } from "./src/main.js";
+} from "./src/server.js";
+export type { BlogFrontmatter, BlogPostSource } from "./src/server.js";
 

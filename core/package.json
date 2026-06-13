@@ -2,12 +2,12 @@
   "name": "postfolio",
   "version": "1.0.4",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/server.js",
+  "types": "./dist/server.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
     },
     "./renderer": {
       "types": "./dist/src/renderer.d.ts",
@@ -28,7 +28,8 @@
   "dependencies": {
     "esbuild": "^0.28.0",
     "gray-matter": "^4.0.3",
-    "mdx-bundler": "^10.1.1"
+    "mdx-bundler": "^10.1.1",
+    "server-only": "^0.0.1"
   },
   "peerDependencies": {
     "react": ">=19"
