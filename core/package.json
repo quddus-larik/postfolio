@@ -2,8 +2,10 @@
   "name": "postfolio",
   "version": "1.0.6",
   "type": "module",
+
   "main": "./dist/server.js",
   "types": "./dist/server.d.ts",
+
   "exports": {
     ".": {
       "react-server": {
@@ -11,33 +13,33 @@
         "import": "./dist/server.js"
       },
       "default": {
-        "types": "./dist/src/client.d.ts",
-        "import": "./dist/src/client.js"
+        "types": "./dist/client.d.ts",
+        "import": "./dist/client.js"
       }
     },
     "./server": {
       "types": "./dist/server.d.ts",
       "import": "./dist/server.js"
     },
-    "./renderer": {
-      "types": "./dist/src/client.d.ts",
-      "import": "./dist/src/client.js"
-    },
     "./client": {
-      "types": "./dist/src/client.d.ts",
-      "import": "./dist/src/client.js"
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
     },
+
+    "./renderer": {
+      "types": "./dist/renderer.d.ts",
+      "import": "./dist/renderer.js"
+    },
+
     "./utils": {
-      "types": "./dist/src/utils.d.ts",
-      "import": "./dist/src/utils.js"
+      "types": "./dist/utils.d.ts",
+      "import": "./dist/utils.js"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch"
+    "build": "tsc",
+    "dev": "tsc --watch"
   },
   "dependencies": {
     "esbuild": "^0.28.0",
@@ -45,16 +47,18 @@
     "mdx-bundler": "^10.1.1",
     "server-only": "^0.0.1"
   },
+
   "peerDependencies": {
     "react": ">=19"
   },
+
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
-    "tsup": "^8.5.1",
     "typescript": "^5"
   },
+
   "allowScripts": {
-    "esbuild@0.27.7": true
+    "esbuild@0.28.0": true
   }
 }

@@ -1,15 +1,10 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
-
+import matter from "gray-matter";
 import { bundleMDX } from "mdx-bundler";
+
 import { generateSlug } from "./utils.js";
-
-let BLOG_DIR_PATH = path.join(process.cwd(), "content", "blogs");
-
-export function setContentDirectory(newPath: string) {
-  BLOG_DIR_PATH = newPath;
-}
 
 export type BlogFrontmatter = {
   title?: string;
@@ -18,7 +13,6 @@ export type BlogFrontmatter = {
   tags?: string[];
   author?: string;
   draft?: boolean;
-
   [key: string]: string | string[] | boolean | undefined;
 };
 
@@ -27,10 +21,16 @@ export type BlogPostSource = {
   filename: string;
   filePath: string;
   mdx: string;
-  frontmatter?: any;
+  frontmatter?: BlogFrontmatter;
 };
 
+type TOCItem = {
+  level: number;
+  text: string;
+  slug: string;
+};
 
+export { generateSlug };
 
 function transformFilenameToSlug(filename: string): string {
   return filename
@@ -43,26 +43,31 @@ function transformFilenameToSlug(filename: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-function getMdxFileNames(): string[] {
-  if (!fs.existsSync(BLOG_DIR_PATH)) {
+function getMdxFileNames(contentDir: string): string[] {
+  if (!fs.existsSync(contentDir)) {
     return [];
   }
 
   return fs
-    .readdirSync(BLOG_DIR_PATH)
+    .readdirSync(contentDir)
     .filter((file) => file.endsWith(".mdx"));
 }
 
-function getPostSourceBySlug(slug: string): BlogPostSource | undefined {
-  const filename = getMdxFileNames().find(
-    (file) => transformFilenameToSlug(file) === slug,
+function getPostSourceBySlug(
+  slug: string,
+  contentDir: string
+): BlogPostSource | undefined {
+  const resolvedDir = path.resolve(contentDir);
+
+  const filename = getMdxFileNames(resolvedDir).find(
+    (file) => transformFilenameToSlug(file) === slug
   );
 
   if (!filename) {
     return undefined;
   }
 
-  const filePath = path.join(BLOG_DIR_PATH, filename);
+  const filePath = path.resolve(resolvedDir, filename);
 
   return {
     slug,
@@ -72,74 +77,64 @@ function getPostSourceBySlug(slug: string): BlogPostSource | undefined {
   };
 }
 
-type TOCItem = {
-  level: number;
-  text: string;
-  slug: string;
-};
-
-
-export { generateSlug };
-
 export function generateTOC(content: string): TOCItem[] {
   const headingRegex = /^(#{1,6})\s+(.+)$/gm;
 
-  return [...content.matchAll(headingRegex)].map((match) => {
-    const level = match[1].length;
-    const text = match[2].trim();
-
-    return {
-      level,
-      text,
-      slug: generateSlug(text),
-    };
-  });
+  return [...content.matchAll(headingRegex)].map(([_, hashes, text]) => ({
+    level: hashes.length,
+    text: text.trim(),
+    slug: generateSlug(text.trim()),
+  }));
 }
 
-export function Slugs(): string[] {
-  return getMdxFileNames().map(transformFilenameToSlug);
+export function Slugs(contentDir: string): string[] {
+  return getMdxFileNames(contentDir).map(transformFilenameToSlug);
 }
 
-export function Post(slug: string): BlogPostSource | undefined {
-  return getPostSourceBySlug(slug);
+export function Post(
+  slug: string,
+  contentDir: string
+): BlogPostSource | undefined {
+  return getPostSourceBySlug(slug, contentDir);
 }
 
-export async function allPosts(): Promise<BlogPostSource[]> {
+export async function allPosts(
+  contentDir: string
+): Promise<BlogPostSource[]> {
+  return Slugs(contentDir)
+    .map((slug) => getPostSourceBySlug(slug, contentDir))
+    .filter((post): post is BlogPostSource => Boolean(post))
+    .map((post) => {
+      const { data: frontmatter } = matter(post.mdx);
 
-
-  const posts = Slugs()
-    .map(getPostSourceBySlug)
-    .filter((post): post is BlogPostSource => Boolean(post));
-
-  return Promise.all(
-    posts.map(async (post) => {
-      const { frontmatter } = await bundleMDX<BlogFrontmatter | any>({
-        file: post.filePath,
-        cwd: BLOG_DIR_PATH,
-      });
-      return { ...post, frontmatter };
-    })
-  );
+      return {
+        ...post,
+        frontmatter,
+      };
+    });
 }
 
-export async function MDXPost(slug: string) {
-  const post = Post(slug);
+export async function MDXPost(
+  slug: string,
+  contentDir: string
+) {
+  const resolvedDir = path.resolve(contentDir);
+
+  const post = getPostSourceBySlug(slug, resolvedDir);
 
   if (!post) {
     return undefined;
   }
 
-
-
-  const { code, frontmatter } = await bundleMDX<BlogFrontmatter | any>({
+  const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({
     file: post.filePath,
-    cwd: BLOG_DIR_PATH,
+    cwd: resolvedDir,
   });
 
   return {
     slug: post.slug,
     code,
     frontmatter,
-    raw: post.mdx
+    raw: post.mdx,
   };
 }
