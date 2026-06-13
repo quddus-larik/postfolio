@@ -25,6 +25,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "esbuild": "^0.28.0",
     "gray-matter": "^4.0.3",
     "mdx-bundler": "^10.1.1"
   },

@@ -8,10 +8,6 @@ let BLOG_DIR_PATH = path.join(process.cwd(), "content", "blogs");
 export function setContentDirectory(newPath: string) {
   BLOG_DIR_PATH = newPath;
 }
-const ESBUILD_BINARY_PATH =
-  process.platform === "win32"
-    ? path.join(process.cwd(), "node_modules", "esbuild", "esbuild.exe")
-    : path.join(process.cwd(), "node_modules", "esbuild", "bin", "esbuild");
 
 export type BlogFrontmatter = {
   title?: string;
@@ -32,11 +28,7 @@ export type BlogPostSource = {
   frontmatter?: any;
 };
 
-function ensureEsbuildBinaryPath() {
-  if (!process.env.ESBUILD_BINARY_PATH) {
-    process.env.ESBUILD_BINARY_PATH = ESBUILD_BINARY_PATH;
-  }
-}
+
 
 function transformFilenameToSlug(filename: string): string {
   return filename
@@ -119,7 +111,7 @@ export function Post(slug: string): BlogPostSource | undefined {
 }
 
 export async function allPosts(): Promise<BlogPostSource[]> {
-  ensureEsbuildBinaryPath();
+
 
   const posts = Slugs()
     .map(getPostSourceBySlug)
@@ -143,7 +135,7 @@ export async function MDXPost(slug: string) {
     return undefined;
   }
 
-  ensureEsbuildBinaryPath();
+
 
   const { code, frontmatter } = await bundleMDX<BlogFrontmatter | any>({
     file: post.filePath,
