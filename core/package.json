@@ -22,7 +22,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsup",
+    "dev": "tsup --watch"
   },
   "dependencies": {
     "esbuild": "^0.28.0",
@@ -35,6 +36,7 @@
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
+    "tsup": "^8.5.1",
     "typescript": "^5"
   },
   "allowScripts": {
