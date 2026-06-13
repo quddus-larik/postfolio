@@ -5,17 +5,31 @@
   "main": "./dist/server.js",
   "types": "./dist/server.d.ts",
   "exports": {
+    ".": {
+      "react-server": {
+        "types": "./dist/server.d.ts",
+        "import": "./dist/server.js"
+      },
+      "default": {
+        "types": "./dist/src/client.d.ts",
+        "import": "./dist/src/client.js"
+      }
+    },
     "./server": {
       "types": "./dist/server.d.ts",
       "import": "./dist/server.js"
     },
     "./renderer": {
-      "types": "./dist/src/renderer.d.ts",
-      "import": "./dist/src/renderer.js"
+      "types": "./dist/src/client.d.ts",
+      "import": "./dist/src/client.js"
     },
     "./client": {
       "types": "./dist/src/client.d.ts",
       "import": "./dist/src/client.js"
+    },
+    "./utils": {
+      "types": "./dist/src/utils.d.ts",
+      "import": "./dist/src/utils.js"
     }
   },
   "files": [

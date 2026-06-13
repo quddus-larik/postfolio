@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { bundleMDX } from "mdx-bundler";
+import { generateSlug } from "./utils.js";
 
 let BLOG_DIR_PATH = path.join(process.cwd(), "content", "blogs");
 
@@ -78,12 +79,7 @@ type TOCItem = {
 };
 
 
-export function generateSlug(text: string){
-  return text
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/\s+/g, "-")
-}
+export { generateSlug };
 
 export function generateTOC(content: string): TOCItem[] {
   const headingRegex = /^(#{1,6})\s+(.+)$/gm;
@@ -95,10 +91,7 @@ export function generateTOC(content: string): TOCItem[] {
     return {
       level,
       text,
-      slug: text
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/\s+/g, "-"),
+      slug: generateSlug(text),
     };
   });
 }

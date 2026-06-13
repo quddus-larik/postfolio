@@ -1,21 +1,11 @@
 "use client";
-import type { ReactNode } from "react";
+
+import * as React from "react";
 import { useEffect, useState } from "react";
+import { getMDXComponent } from "mdx-bundler/client/index.js";
+import { generateSlug } from "./utils.js";
 
-export function generateSlug(text: string | ReactNode | undefined): string {
-  if (text === undefined) {
-    return "";
-  }
-  const textString = typeof text === "string" 
-    ? text 
-    : String(text);
-
-  return textString
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-");
-}
-
+export { generateSlug };
 
 export function useActiveHeading() {
   const [activeId, setActiveId] = useState("");
@@ -52,4 +42,19 @@ export function useActiveHeading() {
   }, []);
 
   return activeId;
+}
+
+export function Content({
+  code,
+  components,
+}: {
+  code: string;
+  components?: React.ComponentProps<
+    ReturnType<typeof getMDXComponent>
+  >["components"];
+}) {
+  const Render = React.useMemo(() => getMDXComponent(code), [code]);
+
+  // eslint-disable-next-line react-hooks/static-components -- mdx-bundler creates a component from compiled MDX at runtime.
+  return <Render components={components} />;
 }

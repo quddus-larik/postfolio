@@ -3,8 +3,8 @@ import { defineConfig } from "tsup";
 export default defineConfig({
   entry: {
     server: "server.ts",
-    "src/client": "src/client.ts",
-    "src/renderer": "src/renderer.tsx",
+    "src/client": "src/client.tsx",
+    "src/utils": "src/utils.ts",
   },
   format: ["esm"],
   dts: true,
