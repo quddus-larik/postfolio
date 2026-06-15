@@ -27,14 +27,11 @@ yarn add postfolio
 1. Fetch your posts and render your blog index:
 
 ```tsx
-import path from "node:path";
-import { setContentDirectory, allPosts } from "postfolio";
-
-// Optionally set a custom directory for your markdown files
-setContentDirectory(path.join(process.cwd(), "content", "blogs"));
+// app/blog/page.tsx
+import { allPosts } from "postfolio/server";
 
 export default async function BlogIndex() {
-  const posts = await allPosts();
+  const posts = await allPosts("content/blogs");
   
   return (
     <div>
@@ -51,12 +48,16 @@ export default async function BlogIndex() {
 2. Render MDX content and extract the Table of Contents:
 
 ```tsx
-import { MDXPost, generateTOC } from "postfolio";
-import { Content } from "postfolio/renderer";
+// app/posts/[slug]/page.tsx
+import { MDXPost, generateTOC } from "postfolio/server";
+import { Content } from "postfolio/client";
 
 export default async function BlogPost({ params }) {
   const { slug } = await params;
-  const post = await MDXPost(slug);
+  const post = await MDXPost(slug, "content/blogs");
+  
+  if (!post) return null;
+  
   const toc = generateTOC(post.raw);
 
   return (
@@ -65,8 +66,6 @@ export default async function BlogPost({ params }) {
       
       {/* Pass your custom React components map here */}
       <Content components={{}} code={post.code} />
-      
-      {/* Build your custom TOC UI here using the generated `toc` array */}
     </article>
   );
 }
@@ -87,7 +86,7 @@ export function TableOfContents({ toc }) {
   return (
     <ul>
       {toc.map(item => (
-        <li key={item.slug} className={activeId === item.slug ? 'font-bold' : ''}>
+        <li key={item.slug} style={{ fontWeight: activeId === item.slug ? 'bold' : 'normal' }}>
           <a href={`#${item.slug}`}>{item.text}</a>
         </li>
       ))}
@@ -95,6 +94,10 @@ export function TableOfContents({ toc }) {
   );
 }
 ```
+
+## Custom Components
+
+Postfolio allows you to provide custom React components to render your MDX content. This is perfect for styling headings, images, and adding custom UI blocks like syntax-highlighted code snippets.
 
 ---
 

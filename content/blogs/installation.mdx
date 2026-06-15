@@ -1,0 +1,110 @@
+---
+title: "Installation Guide"
+description: "Learn how to integrate postfolio into your Next.js project."
+date: "2026-06-15"
+tags: ["installation", "guide", "setup", "nextjs"]
+author: "Abdul Quddus"
+draft: false
+cover: https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070&auto=format&fit=crop
+avatar: https://github.com/quddus-larik.png
+---
+
+## Introduction
+
+**postfolio** is a lightweight, high-performance MDX engine designed specifically for portfolios and personal blogs. It simplifies the process of bundling MDX, extracting frontmatter, and generating interactive features like Table of Contents.
+
+## Installation
+
+To get started, install the package using your preferred package manager:
+
+<Snippet>npm install postfolio</Snippet>
+
+Or using pnpm:
+
+<Snippet>pnpm add postfolio</Snippet>
+
+## Setup
+
+### 1. Directory Structure
+
+By default, we recommend storing your MDX files in a dedicated directory, for example: `content/blogs`.
+
+```text
+my-project/
+├── content/
+│   └── blogs/
+│       └── hello-world.mdx
+├── app/
+│   └── posts/
+│       └── [slug]/
+│           └── page.tsx
+└── package.json
+```
+
+### 2. Rendering a Post
+
+Create a dynamic route in your Next.js `app` directory to handle blog posts. You can use the `MDXPost` utility to fetch and bundle your content.
+
+```tsx
+// app/posts/[slug]/page.tsx
+import { MDXPost, generateTOC } from "postfolio/server";
+import { Content } from "postfolio/client";
+import { components } from "@/components/mdx-components";
+
+export default async function Page({ params }) {
+  const { slug } = await params;
+  
+  // Fetch and bundle the post
+  const post = await MDXPost(slug, "content/blogs");
+  
+  if (!post) return <div>Post not found</div>;
+
+  return (
+    <article>
+      <h1>{post.frontmatter.title}</h1>
+      <Content code={post.code} components={components} />
+    </article>
+  );
+}
+```
+
+### 3. Generating Static Params
+
+For better performance and SEO, use `generateStaticParams` to pre-render your blog posts at build time.
+
+```tsx
+import { Slugs } from "postfolio/server";
+
+export async function generateStaticParams() {
+  const slugs = Slugs("content/blogs");
+  return slugs.map((slug) => ({ slug }));
+}
+```
+
+## Features
+
+### Table of Contents
+
+You can easily generate a Table of Contents from the raw MDX content:
+
+```tsx
+const toc = generateTOC(post.raw);
+```
+
+### Active Heading Tracking
+
+Use our client hook to track which section the user is currently reading:
+
+```tsx
+"use client";
+import { useActiveHeading } from "postfolio/client";
+
+function MyTOC({ toc }) {
+  const activeId = useActiveHeading();
+  // ... render your TOC
+}
+```
+
+## Next Steps
+
+Now that you have postfolio installed, check out our [Theming Guide](#) to customize the look and feel of your blog components.
