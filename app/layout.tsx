@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Google_Sans_Flex, Google_Sans_Code } from "next/font/google";
+import { Google_Sans_Flex, Google_Sans_Code, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Google_Sans_Flex({
@@ -8,8 +8,8 @@ const geistSans = Google_Sans_Flex({
   preload: true
 });
 
-const geistMono = Google_Sans_Code({
-  variable: "--font-google-mono",
+const geistMono = JetBrains_Mono({
+  variable: "--font-jetbain-mono",
   subsets: ["latin"],
   preload: true,
   fallback: ['system-ui', 'arial']

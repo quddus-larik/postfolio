@@ -8,15 +8,13 @@ import {
   Avatar,
   ButtonGroup,
 } from "@heroui/react";
-import path from "node:path";
-import { MDXPost, Slugs, generateTOC, setContentDirectory } from "postfolio";
-import { Content } from "postfolio/renderer";
+import { MDXPost, Slugs, generateTOC } from "postfolio/server";
+import { Content } from "postfolio/renderer"
 import { notFound } from "next/navigation";
 import { TableOfContents } from "@/components/table-of-contents";
 
 export async function generateStaticParams() {
-  setContentDirectory(path.join(process.cwd(), "content", "blogs"));
-  const slugs = Slugs();
+  const slugs = Slugs("content/blogs");
 
   return slugs.map((itm) => ({
     slug: itm,
@@ -28,9 +26,8 @@ export default async function Page({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  setContentDirectory(path.join(process.cwd(), "content", "blogs"));
   const { slug } = await params;
-  const post = await MDXPost(slug);
+  const post = await MDXPost(slug, "content/blogs");
 
   if (!post) {
     notFound();
@@ -90,6 +87,7 @@ export default async function Page({
           </Description>
         </div>
         <Content components={components} code={post.code} />
+        <Separator className="my-2" />
         <div className="flex flex-col gap-1 justify-start">
           <Label>Source</Label>
           <Description>{post.frontmatter.source}</Description>
