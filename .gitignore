@@ -44,3 +44,6 @@ next-env.d.ts
 
 # Agentic
 .claude
+
+# heroui-agents-md
+.heroui-docs
