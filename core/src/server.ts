@@ -4,7 +4,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import { bundleMDX } from "mdx-bundler";
 
-import { generateSlug } from "./utils.js";
+import { generateSlug } from "./utils";
 
 export type BlogFrontmatter = {
   title?: string;
@@ -50,7 +50,7 @@ function getMdxFileNames(contentDir: string): string[] {
 
   return fs
     .readdirSync(contentDir)
-    .filter((file) => file.endsWith(".mdx"));
+    .filter((file: string) => file.endsWith(".mdx"));
 }
 
 function getPostSourceBySlug(
@@ -112,6 +112,66 @@ export async function allPosts(
         frontmatter,
       };
     });
+}
+
+type DevToArticle = {
+  slug: string;
+  url: string;
+  body_markdown: string;
+  title: string;
+  description: string;
+  published_at: string;
+  tags: string[];
+  cover_image?: string;
+  user?: { name?: string };
+  [key: string]: unknown;
+};
+
+function extractFrontmatter(article: DevToArticle): BlogFrontmatter {
+  return {
+    title: article.title,
+    description: article.description,
+    date: article.published_at,
+    tags: article.tags,
+    author: article.user?.name,
+  };
+}
+
+function mapArticleToPostSource(
+  article: DevToArticle,
+  extraFrontmatter: object = {}
+): BlogPostSource {
+  return {
+    slug: article.slug,
+    filename: article.slug + ".mdx",
+    filePath: article.url,
+    mdx: article.body_markdown,
+    frontmatter: {
+      ...extractFrontmatter(article),
+      ...extraFrontmatter,
+    },
+  };
+}
+
+export async function externalPosts(
+  devtoUrl: string,
+  extraFrontmatter: object = {}
+): Promise<BlogPostSource[]> {
+  const response = await fetch(devtoUrl);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch posts from ${devtoUrl}`);
+  }
+
+  const data = await response.json();
+
+  if (Array.isArray(data)) {
+    return data.map((article) =>
+      mapArticleToPostSource(article, extraFrontmatter)
+    );
+  }
+
+  return [mapArticleToPostSource(data, extraFrontmatter)];
 }
 
 export async function MDXPost(

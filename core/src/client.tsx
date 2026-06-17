@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { getMDXComponent } from "mdx-bundler/client";
-import { generateSlug } from "./utils.js";
+import { generateSlug } from "./utils";
 
 export { generateSlug };
 
