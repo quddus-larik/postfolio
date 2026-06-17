@@ -181,6 +181,9 @@ export default async function Page() {
                 <Chip variant="soft" color="danger">
                   <Chip.Label>Tags</Chip.Label>
                 </Chip>
+                <Chip variant="soft" color="danger">
+                  <Chip.Label>More..</Chip.Label>
+                </Chip>
               </Card.Footer>
             </Card>
           </div>
@@ -213,8 +216,8 @@ export default async function Page() {
                 href={`/posts/${itm.slug}`}
                 className="group"
               >
-                <Card className="h-full bg-surface border-border shadow-none group-hover:border-accent hover:shadow-md transition-all">
-                  <Card.Header className="p-6 pb-0 flex flex-col gap-2 items-start">
+                <Card className="h-full bg-surface border-border shadow-none group-hover:border-accent hover:shadow-sm transition-all">
+                  <Card.Header className="flex flex-col gap-2 items-start">
                     <Chip
                       size="sm"
                       variant="soft"
@@ -225,29 +228,15 @@ export default async function Page() {
                         {itm.frontmatter?.tags?.[0] || "Article"}
                       </Chip.Label>
                     </Chip>
-                    <Card.Title className="text-xl font-bold group-hover:text-accent-foreground transition-colors">
+                    <Card.Title className="text-xl font-semibold group-hover:text-accent-foreground transition-colors">
                       {itm.frontmatter?.title}
                     </Card.Title>
                   </Card.Header>
-                  <Card.Content className="p-6">
+                  <Card.Content>
                     <Card.Description className="text-sm line-clamp-3 leading-relaxed">
                       {itm.frontmatter?.description}
                     </Card.Description>
                   </Card.Content>
-                  <Card.Footer className="p-6 pt-0 flex flex-wrap gap-1">
-                    {itm.frontmatter?.tags
-                      ?.slice(1)
-                      .map((tag: any, idx: number) => (
-                        <Chip
-                          key={idx + tag}
-                          variant="secondary"
-                          size="sm"
-                          className="text-xs h-6"
-                        >
-                          <Chip.Label>{tag}</Chip.Label>
-                        </Chip>
-                      ))}
-                  </Card.Footer>
                 </Card>
               </Link>
             ))}
