@@ -102,3 +102,7 @@ Postfolio allows you to provide custom React components to render your MDX conte
 ---
 
 *Focus on your portfolio's design, and let postfolio handle the blogging engine.*
+
+---
+**Build with Love by Quddus Larek**
+
