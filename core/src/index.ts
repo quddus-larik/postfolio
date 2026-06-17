@@ -10,5 +10,5 @@ export {
   generateTOC
 } from "./server";
 export { Content, useActiveHeading } from "./client";
-export type { BlogFrontmatter, BlogPostSource } from "./server";
+export type { BlogFrontmatter, BlogPostSource, ExternalPostInput } from "./server";
 
