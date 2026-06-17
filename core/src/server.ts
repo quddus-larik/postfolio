@@ -114,6 +114,8 @@ export async function allPosts(
     });
 }
 
+export type ExternalPostInput = string | { url: string; extraFrontmatter?: object };
+
 type DevToArticle = {
   slug: string;
   url: string;
@@ -154,24 +156,27 @@ function mapArticleToPostSource(
 }
 
 export async function externalPosts(
-  devtoUrl: string,
-  extraFrontmatter: object = {}
+  posts: ExternalPostInput[]
 ): Promise<BlogPostSource[]> {
-  const response = await fetch(devtoUrl);
+  const results = await Promise.all(
+    posts.map(async (input) => {
+      const url = typeof input === "string" ? input : input.url;
+      const extraFrontmatter =
+        typeof input === "string" ? {} : (input.extraFrontmatter ?? {});
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch posts from ${devtoUrl}`);
-  }
+      const response = await fetch(url);
 
-  const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`Failed to fetch post from ${url}`);
+      }
 
-  if (Array.isArray(data)) {
-    return data.map((article) =>
-      mapArticleToPostSource(article, extraFrontmatter)
-    );
-  }
+      const article: DevToArticle = await response.json();
 
-  return [mapArticleToPostSource(data, extraFrontmatter)];
+      return mapArticleToPostSource(article, extraFrontmatter);
+    })
+  );
+
+  return results;
 }
 
 export async function MDXPost(
