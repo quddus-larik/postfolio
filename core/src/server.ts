@@ -111,7 +111,8 @@ export async function allPosts(
         ...post,
         frontmatter,
       };
-    });
+    })
+    .filter((post) => post.frontmatter?.draft !== true);
 }
 
 export type ExternalPostInput = string | { url: string; extraFrontmatter?: object };
@@ -176,7 +177,7 @@ export async function externalPosts(
     })
   );
 
-  return results;
+  return results.filter((post) => post.frontmatter?.draft !== true);
 }
 
 export async function MDXPost(
