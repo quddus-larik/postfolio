@@ -11,6 +11,7 @@ Whether you are a developer, designer, or creator, `postfolio` simplifies adding
 - **Table of Contents**: Easily generate a Table of Contents (TOC) from your headings with our pre-built generator, and track scroll position using our client hooks.
 - **Powered by `mdx-bundler`**: We leverage the actively maintained and highly capable `mdx-bundler` to parse and render your MDX content, giving you the ability to embed React components right inside your markdown files.
 - **Customizable Source**: Store your markdown files anywhere! Customize the content directory path at runtime.
+- **External Posts**: Fetch posts from external sources like Dev.to and merge them with your local content.
 
 ## Installation
 
@@ -71,6 +72,58 @@ export default async function BlogPost({ params }) {
 }
 ```
 
+## External Posts
+
+Fetch posts from external sources like Dev.to and combine them with your local content.
+
+```tsx
+// app/blog/page.tsx
+import { allPosts, externalPosts } from "postfolio/server";
+
+export default async function BlogIndex() {
+  // Fetch local posts
+  const localPosts = await allPosts("content/blogs");
+  
+  // Fetch external posts from Dev.to
+  const external = await externalPosts([
+    // Simple URL string
+    "https://dev.to/api/articles/quddus-larik/post-slug-12345",
+    
+    // URL with extra frontmatter
+    {
+      url: "https://dev.to/api/articles/quddus-larik/another-post-67890",
+      extraFrontmatter: { featured: true }
+    }
+  ]);
+  
+  // Combine and display
+  const allPosts = [...external, ...localPosts];
+  
+  return (
+    <div>
+      {allPosts.map(post => (
+        <a key={post.slug} href={`/posts/${post.slug}`}>
+          {post.frontmatter.title}
+        </a>
+      ))}
+    </div>
+  );
+}
+```
+
+### ExternalPostInput
+
+Each element in the array can be:
+
+| Type | Description |
+|------|-------------|
+| `string` | A URL to the Dev.to article API endpoint |
+| `{ url: string; extraFrontmatter?: object }` | URL with additional frontmatter to merge |
+
+The function automatically extracts `title`, `description`, `date`, `tags`, and `author` from the Dev.to response.
+
+Posts with `draft: true` in frontmatter are automatically filtered out.
+
 ## Client Hooks
 
 If you need a Table of Contents with an active scroll spy, you can import our client hooks to build interactive UI:
@@ -98,6 +151,37 @@ export function TableOfContents({ toc }) {
 ## Custom Components
 
 Postfolio allows you to provide custom React components to render your MDX content. This is perfect for styling headings, images, and adding custom UI blocks like syntax-highlighted code snippets.
+
+---
+
+## API Reference
+
+### Server Functions
+
+| Function | Description |
+|----------|-------------|
+| `allPosts(contentDir)` | Get all MDX posts from a directory (excludes drafts) |
+| `externalPosts(posts[])` | Fetch posts from external sources (excludes drafts) |
+| `Post(slug, contentDir)` | Get a single post by slug |
+| `MDXPost(slug, contentDir)` | Get a post with bundled MDX code |
+| `Slugs(contentDir)` | Get all slugs from a directory |
+| `generateTOC(content)` | Generate table of contents from markdown headings |
+| `generateSlug(text)` | Convert text to a URL-friendly slug |
+
+### Client Components
+
+| Component/Hook | Description |
+|----------------|-------------|
+| `Content` | Render bundled MDX content |
+| `useActiveHeading` | Track which heading is currently in view |
+
+### Types
+
+| Type | Description |
+|------|-------------|
+| `BlogFrontmatter` | Frontmatter schema for blog posts |
+| `BlogPostSource` | Complete blog post data structure |
+| `ExternalPostInput` | Input type for external posts |
 
 ---
 

@@ -10,18 +10,19 @@ import {
 import Link from "next/link";
 import {
   Copy,
-  GithubLogo,
   Lightning,
   Selection,
   ListBullets,
   FileCode,
-  ArrowRight,
   BookOpen,
   GithubLogoIcon,
 } from "@phosphor-icons/react/dist/ssr";
+import { externalPosts } from "@/core/src";
 
 export default async function Page() {
   const data = await allPosts("content/blogs");
+  const externalData = await externalPosts("https://dev.to/api/articles/quddus-larik/unexpected-ui-system-in-my-first-project-5478");
+  console.log(externalData);
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-accent selection:text-accent-foreground">

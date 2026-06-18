@@ -50,7 +50,7 @@ function getMdxFileNames(contentDir: string): string[] {
 
   return fs
     .readdirSync(contentDir)
-    .filter((file) => file.endsWith(".mdx"));
+    .filter((file: string) => file.endsWith(".mdx"));
 }
 
 function getPostSourceBySlug(
@@ -111,7 +111,73 @@ export async function allPosts(
         ...post,
         frontmatter,
       };
-    });
+    })
+    .filter((post) => post.frontmatter?.draft !== true);
+}
+
+export type ExternalPostInput = string | { url: string; extraFrontmatter?: object };
+
+type DevToArticle = {
+  slug: string;
+  url: string;
+  body_markdown: string;
+  title: string;
+  description: string;
+  published_at: string;
+  tags: string[];
+  cover_image?: string;
+  user?: { name?: string };
+  [key: string]: unknown;
+};
+
+function extractFrontmatter(article: DevToArticle): BlogFrontmatter {
+  return {
+    title: article.title,
+    description: article.description,
+    date: article.published_at,
+    tags: article.tags,
+    author: article.user?.name,
+  };
+}
+
+function mapArticleToPostSource(
+  article: DevToArticle,
+  extraFrontmatter: object = {}
+): BlogPostSource {
+  return {
+    slug: article.slug,
+    filename: article.slug + ".mdx",
+    filePath: article.url,
+    mdx: article.body_markdown,
+    frontmatter: {
+      ...extractFrontmatter(article),
+      ...extraFrontmatter,
+    },
+  };
+}
+
+export async function externalPosts(
+  posts: ExternalPostInput[]
+): Promise<BlogPostSource[]> {
+  const results = await Promise.all(
+    posts.map(async (input) => {
+      const url = typeof input === "string" ? input : input.url;
+      const extraFrontmatter =
+        typeof input === "string" ? {} : (input.extraFrontmatter ?? {});
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch post from ${url}`);
+      }
+
+      const article: DevToArticle = await response.json();
+
+      return mapArticleToPostSource(article, extraFrontmatter);
+    })
+  );
+
+  return results.filter((post) => post.frontmatter?.draft !== true);
 }
 
 export async function MDXPost(
