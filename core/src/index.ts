@@ -8,7 +8,7 @@ export {
   MDXPost,
   generateSlug,
   generateTOC
-} from "./server";
-export { Content, useActiveHeading } from "./client";
-export type { BlogFrontmatter, BlogPostSource, ExternalPostInput } from "./server";
+} from "./server.js";
+export { Content, useActiveHeading } from "./client.js";
+export type { BlogFrontmatter, BlogPostSource, ExternalPostInput } from "./server.js";
 

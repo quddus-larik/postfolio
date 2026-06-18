@@ -4,7 +4,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import { bundleMDX } from "mdx-bundler";
 
-import { generateSlug } from "./utils";
+import { generateSlug } from "./utils.js";
 
 export type BlogFrontmatter = {
   title?: string;
