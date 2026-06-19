@@ -1,4 +1,4 @@
-import { allPosts } from "postfolio/server";
+import { allPosts, externalPosts } from "postfolio/server";
 import {
   Button,
   Card,
@@ -17,12 +17,15 @@ import {
   BookOpen,
   GithubLogoIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import { externalPosts } from "@/core/src";
+
+const externalPostUrls = [
+  "https://dev.to/api/articles/quddus-larik/unexpected-ui-system-in-my-first-project-5478",
+];
 
 export default async function Page() {
-  const data = await allPosts("content/blogs");
-  const externalData = await externalPosts("https://dev.to/api/articles/quddus-larik/unexpected-ui-system-in-my-first-project-5478");
-  console.log(externalData);
+  const localPosts = await allPosts("content/blogs");
+  const externalPostsList = await externalPosts(externalPostUrls);
+  const allPostsList = [...externalPostsList, ...localPosts];
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-accent selection:text-accent-foreground">
@@ -211,7 +214,7 @@ export default async function Page() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data.map((itm) => (
+            {allPostsList.map((itm) => (
               <Link
                 key={itm.slug}
                 href={`/posts/${itm.slug}`}
