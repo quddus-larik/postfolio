@@ -3,8 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import { bundleMDX } from "mdx-bundler";
-
-import { generateSlug } from "./utils.js";
+import { generateSlug } from "./utils";
 
 export type BlogFrontmatter = {
   title?: string;
@@ -13,6 +12,8 @@ export type BlogFrontmatter = {
   tags?: string[];
   author?: string;
   draft?: boolean;
+  cover?: string;
+  cover_image?: string;
   [key: string]: string | string[] | boolean | undefined;
 };
 
@@ -24,98 +25,15 @@ export type BlogPostSource = {
   frontmatter?: BlogFrontmatter;
 };
 
+export type ExternalPostInput =
+  | string
+  | { url: string; extraFrontmatter?: object };
+
 type TOCItem = {
   level: number;
   text: string;
   slug: string;
 };
-
-export { generateSlug };
-
-function transformFilenameToSlug(filename: string): string {
-  return filename
-    .replace(/\.mdx$/, "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function getMdxFileNames(contentDir: string): string[] {
-  if (!fs.existsSync(contentDir)) {
-    return [];
-  }
-
-  return fs
-    .readdirSync(contentDir)
-    .filter((file: string) => file.endsWith(".mdx"));
-}
-
-function getPostSourceBySlug(
-  slug: string,
-  contentDir: string
-): BlogPostSource | undefined {
-  const resolvedDir = path.resolve(contentDir);
-
-  const filename = getMdxFileNames(resolvedDir).find(
-    (file) => transformFilenameToSlug(file) === slug
-  );
-
-  if (!filename) {
-    return undefined;
-  }
-
-  const filePath = path.resolve(resolvedDir, filename);
-
-  return {
-    slug,
-    filename,
-    filePath,
-    mdx: fs.readFileSync(filePath, "utf8"),
-  };
-}
-
-export function generateTOC(content: string): TOCItem[] {
-  const headingRegex = /^(#{1,6})\s+(.+)$/gm;
-
-  return [...content.matchAll(headingRegex)].map(([_, hashes, text]) => ({
-    level: hashes.length,
-    text: text.trim(),
-    slug: generateSlug(text.trim()),
-  }));
-}
-
-export function Slugs(contentDir: string): string[] {
-  return getMdxFileNames(contentDir).map(transformFilenameToSlug);
-}
-
-export function Post(
-  slug: string,
-  contentDir: string
-): BlogPostSource | undefined {
-  return getPostSourceBySlug(slug, contentDir);
-}
-
-export async function allPosts(
-  contentDir: string
-): Promise<BlogPostSource[]> {
-  return Slugs(contentDir)
-    .map((slug) => getPostSourceBySlug(slug, contentDir))
-    .filter((post): post is BlogPostSource => Boolean(post))
-    .map((post) => {
-      const { data: frontmatter } = matter(post.mdx);
-
-      return {
-        ...post,
-        frontmatter,
-      };
-    })
-    .filter((post) => post.frontmatter?.draft !== true);
-}
-
-export type ExternalPostInput = string | { url: string; extraFrontmatter?: object };
 
 type DevToArticle = {
   slug: string;
@@ -130,6 +48,37 @@ type DevToArticle = {
   [key: string]: unknown;
 };
 
+export { generateSlug };
+
+// --- Local file helpers ---
+
+function toSlug(filename: string): string {
+  return filename
+    .replace(/\.mdx$/, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getMdxFiles(contentDir: string): string[] {
+  if (!fs.existsSync(contentDir)) return [];
+  return fs.readdirSync(contentDir).filter((f) => f.endsWith(".mdx"));
+}
+
+function getLocalPost(slug: string, contentDir: string): BlogPostSource | undefined {
+  const dir = path.resolve(contentDir);
+  const file = getMdxFiles(dir).find((f) => toSlug(f) === slug);
+  if (!file) return undefined;
+
+  const filePath = path.resolve(dir, file);
+  return { slug, filename: file, filePath, mdx: fs.readFileSync(filePath, "utf8") };
+}
+
+// --- External post helpers ---
+
 function extractFrontmatter(article: DevToArticle): BlogFrontmatter {
   return {
     title: article.title,
@@ -137,70 +86,91 @@ function extractFrontmatter(article: DevToArticle): BlogFrontmatter {
     date: article.published_at,
     tags: article.tags,
     author: article.user?.name,
+    cover_image: article.cover_image,
   };
 }
 
-function mapArticleToPostSource(
-  article: DevToArticle,
-  extraFrontmatter: object = {}
-): BlogPostSource {
+function toPostSource(article: DevToArticle, extra: object = {}): BlogPostSource {
   return {
     slug: article.slug,
-    filename: article.slug + ".mdx",
+    filename: `${article.slug}.mdx`,
     filePath: article.url,
     mdx: article.body_markdown,
-    frontmatter: {
-      ...extractFrontmatter(article),
-      ...extraFrontmatter,
-    },
+    frontmatter: { ...extractFrontmatter(article), ...extra },
   };
 }
 
-export async function externalPosts(
-  posts: ExternalPostInput[]
-): Promise<BlogPostSource[]> {
-  const results = await Promise.all(
-    posts.map(async (input) => {
-      const url = typeof input === "string" ? input : input.url;
-      const extraFrontmatter =
-        typeof input === "string" ? {} : (input.extraFrontmatter ?? {});
+async function fetchExternalPost(input: ExternalPostInput): Promise<BlogPostSource> {
+  const url = typeof input === "string" ? input : input.url;
+  const extra = typeof input === "string" ? {} : (input.extraFrontmatter ?? {});
 
-      const response = await fetch(url);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch post from ${url}`);
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch post from ${url}`);
-      }
+  const article: DevToArticle = await res.json();
+  return toPostSource(article, extra);
+}
 
-      const article: DevToArticle = await response.json();
+// --- Exported functions ---
 
-      return mapArticleToPostSource(article, extraFrontmatter);
-    })
-  );
+export function generateTOC(content: string): TOCItem[] {
+  const regex = /^(#{1,6})\s+(.+)$/gm;
+  return [...content.matchAll(regex)].map(([_, hashes, text]) => ({
+    level: hashes.length,
+    text: text.trim(),
+    slug: generateSlug(text.trim()),
+  }));
+}
 
-  return results.filter((post) => post.frontmatter?.draft !== true);
+export function Slugs(contentDir: string): string[] {
+  return getMdxFiles(contentDir).map(toSlug);
+}
+
+export function Post(slug: string, contentDir: string): BlogPostSource | undefined {
+  return getLocalPost(slug, contentDir);
+}
+
+export async function allPosts(contentDir: string): Promise<BlogPostSource[]> {
+  return Slugs(contentDir)
+    .map((slug) => getLocalPost(slug, contentDir))
+    .filter((p): p is BlogPostSource => Boolean(p))
+    .map((p) => ({ ...p, frontmatter: matter(p.mdx).data as BlogFrontmatter }))
+    .filter((p) => p.frontmatter?.draft !== true);
+}
+
+export async function externalPosts(inputs: ExternalPostInput[]): Promise<BlogPostSource[]> {
+  const results = await Promise.all(inputs.map(fetchExternalPost));
+  return results.filter((p) => p.frontmatter?.draft !== true);
 }
 
 export async function MDXPost(
   slug: string,
-  contentDir: string
+  options?: { contentDir?: string; externalBlogs?: ExternalPostInput[] }
 ) {
-  const resolvedDir = path.resolve(contentDir);
+  const { contentDir, externalBlogs = [] } = options ?? {};
 
-  const post = getPostSourceBySlug(slug, resolvedDir);
-
-  if (!post) {
-    return undefined;
+  if (contentDir) {
+    const local = getLocalPost(slug, contentDir);
+    if (local) {
+      const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({
+        file: local.filePath,
+        cwd: path.resolve(contentDir),
+      });
+      return { slug: local.slug, code, frontmatter, raw: local.mdx };
+    }
   }
 
-  const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({
-    file: post.filePath,
-    cwd: resolvedDir,
-  });
+  if (externalBlogs.length > 0) {
+    const posts = await externalPosts(externalBlogs);
+    const external = posts.find((p) => p.slug === slug);
+    if (external) {
+      const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({
+        source: external.mdx,
+        cwd: process.cwd(),
+      });
+      return { slug: external.slug, code, frontmatter, raw: external.mdx };
+    }
+  }
 
-  return {
-    slug: post.slug,
-    code,
-    frontmatter,
-    raw: post.mdx,
-  };
+  return undefined;
 }
