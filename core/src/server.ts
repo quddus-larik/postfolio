@@ -65,7 +65,7 @@ function toSlug(filename: string): string {
 
 function getMdxFiles(contentDir: string): string[] {
   if (!fs.existsSync(contentDir)) return [];
-  return fs.readdirSync(contentDir).filter((f) => f.endsWith(".mdx"));
+  return fs.readdirSync(contentDir).filter((f: string) => f.endsWith(".mdx"));
 }
 
 function getLocalPost(slug: string, contentDir: string): BlogPostSource | undefined {
@@ -122,8 +122,24 @@ export function generateTOC(content: string): TOCItem[] {
   }));
 }
 
-export function Slugs(contentDir: string): string[] {
-  return getMdxFiles(contentDir).map(toSlug);
+export async function Slugs(
+  options?: string | { contentDir?: string; externalBlogs?: ExternalPostInput[] }
+): Promise<string[]> {
+  const { contentDir, externalBlogs = [] } =
+    typeof options === "string"
+      ? { contentDir: options, externalBlogs: [] }
+      : (options ?? {});
+
+  const localSlugs = contentDir ? getMdxFiles(contentDir).map(toSlug) : [];
+
+  if (externalBlogs.length === 0) {
+    return localSlugs;
+  }
+
+  const posts = await externalPosts(externalBlogs);
+  const externalSlugs = posts.map((p) => p.slug);
+
+  return [...externalSlugs, ...localSlugs];
 }
 
 export function Post(slug: string, contentDir: string): BlogPostSource | undefined {
@@ -131,7 +147,8 @@ export function Post(slug: string, contentDir: string): BlogPostSource | undefin
 }
 
 export async function allPosts(contentDir: string): Promise<BlogPostSource[]> {
-  return Slugs(contentDir)
+  const slugs = await Slugs(contentDir);
+  return slugs
     .map((slug) => getLocalPost(slug, contentDir))
     .filter((p): p is BlogPostSource => Boolean(p))
     .map((p) => ({ ...p, frontmatter: matter(p.mdx).data as BlogFrontmatter }))
@@ -166,7 +183,6 @@ export async function MDXPost(
     if (external) {
       const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({
         source: external.mdx,
-        cwd: process.cwd(),
       });
       return { slug: external.slug, code, frontmatter, raw: external.mdx };
     }
