@@ -25,14 +25,27 @@ yarn add postfolio
 
 ## Quick Start
 
-1. Fetch your posts and render your blog index:
+### 1. Fetch and display posts
 
 ```tsx
-// app/blog/page.tsx
-import { allPosts } from "postfolio/server";
+// app/page.tsx
+import { allPosts, externalPosts, Slugs } from "postfolio/server";
 
-export default async function BlogIndex() {
-  const posts = await allPosts("content/blogs");
+const externalBlogs = [
+  "https://dev.to/api/articles/quddus-larik/my-post-12345",
+];
+
+export default async function HomePage() {
+  // Get all slugs (local + external)
+  const slugs = await Slugs({
+    contentDir: "content/blogs",
+    externalBlogs,
+  });
+
+  // Or fetch full posts
+  const localPosts = await allPosts("content/blogs");
+  const external = await externalPosts(externalBlogs);
+  const posts = [...external, ...localPosts];
   
   return (
     <div>
@@ -46,16 +59,23 @@ export default async function BlogIndex() {
 }
 ```
 
-2. Render MDX content and extract the Table of Contents:
+### 2. Render a single post
 
 ```tsx
 // app/posts/[slug]/page.tsx
 import { MDXPost, generateTOC } from "postfolio/server";
 import { Content } from "postfolio/client";
 
+const externalBlogs = [
+  "https://dev.to/api/articles/quddus-larik/my-post-12345",
+];
+
 export default async function BlogPost({ params }) {
   const { slug } = await params;
-  const post = await MDXPost(slug, "content/blogs");
+  const post = await MDXPost(slug, {
+    contentDir: "content/blogs",
+    externalBlogs,
+  });
   
   if (!post) return null;
   
@@ -64,8 +84,6 @@ export default async function BlogPost({ params }) {
   return (
     <article>
       <h1>{post.frontmatter.title}</h1>
-      
-      {/* Pass your custom React components map here */}
       <Content components={{}} code={post.code} />
     </article>
   );
@@ -74,66 +92,91 @@ export default async function BlogPost({ params }) {
 
 ## External Posts
 
-Fetch posts from external sources like Dev.to and combine them with your local content.
+Fetch posts from external sources (Dev.to) and combine them with your local content.
 
 ```tsx
-// app/blog/page.tsx
-import { allPosts, externalPosts } from "postfolio/server";
+import { externalPosts } from "postfolio/server";
 
-export default async function BlogIndex() {
-  // Fetch local posts
-  const localPosts = await allPosts("content/blogs");
+const posts = await externalPosts([
+  // Simple URL string
+  "https://dev.to/api/articles/quddus-larik/post-12345",
   
-  // Fetch external posts from Dev.to
-  const external = await externalPosts([
-    // Simple URL string
-    "https://dev.to/api/articles/quddus-larik/post-slug-12345",
-    
-    // URL with extra frontmatter
-    {
-      url: "https://dev.to/api/articles/quddus-larik/another-post-67890",
-      extraFrontmatter: { featured: true }
-    }
-  ]);
-  
-  // Combine and display
-  const allPosts = [...external, ...localPosts];
-  
-  return (
-    <div>
-      {allPosts.map(post => (
-        <a key={post.slug} href={`/posts/${post.slug}`}>
-          {post.frontmatter.title}
-        </a>
-      ))}
-    </div>
-  );
-}
+  // URL with extra frontmatter
+  {
+    url: "https://dev.to/api/articles/quddus-larik/post-67890",
+    extraFrontmatter: { featured: true }
+  }
+]);
 ```
 
-### ExternalPostInput
-
-Each element in the array can be:
-
-| Type | Description |
-|------|-------------|
-| `string` | A URL to the Dev.to article API endpoint |
+| Input Type | Description |
+|------------|-------------|
+| `string` | URL to the Dev.to article API endpoint |
 | `{ url: string; extraFrontmatter?: object }` | URL with additional frontmatter to merge |
 
-The function automatically extracts `title`, `description`, `date`, `tags`, and `author` from the Dev.to response.
+Posts with `draft: true` are automatically filtered out.
 
-Posts with `draft: true` in frontmatter are automatically filtered out.
+## MDXPost Options
+
+`MDXPost` accepts an options object as the second parameter:
+
+```ts
+MDXPost(slug, options?)
+```
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `contentDir` | `string` | Directory containing local MDX files |
+| `externalBlogs` | `ExternalPostInput[]` | Array of external post URLs/configs |
+
+```tsx
+// Local only
+await MDXPost(slug, { contentDir: "content/blogs" });
+
+// External only
+await MDXPost(slug, { externalBlogs: ["https://dev.to/api/..."] });
+
+// Both (checks local first, then external)
+await MDXPost(slug, {
+  contentDir: "content/blogs",
+  externalBlogs: ["https://dev.to/api/..."],
+});
+```
+
+## Slugs Options
+
+`Slugs` accepts the same options as `MDXPost`:
+
+```ts
+Slugs(options?)
+```
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `contentDir` | `string` | Directory containing local MDX files |
+| `externalBlogs` | `ExternalPostInput[]` | Array of external post URLs/configs |
+
+```tsx
+// Local only
+const slugs = await Slugs("content/blogs");
+
+// External only
+const slugs = await Slugs({ externalBlogs: ["https://dev.to/api/..."] });
+
+// Both (returns [...externalSlugs, ...localSlugs])
+const slugs = await Slugs({
+  contentDir: "content/blogs",
+  externalBlogs: ["https://dev.to/api/..."],
+});
+```
 
 ## Client Hooks
-
-If you need a Table of Contents with an active scroll spy, you can import our client hooks to build interactive UI:
 
 ```tsx
 "use client";
 import { useActiveHeading } from "postfolio/client";
 
 export function TableOfContents({ toc }) {
-  // Automatically tracks which heading is currently visible on the screen
   const activeId = useActiveHeading();
   
   return (
@@ -148,30 +191,24 @@ export function TableOfContents({ toc }) {
 }
 ```
 
-## Custom Components
-
-Postfolio allows you to provide custom React components to render your MDX content. This is perfect for styling headings, images, and adding custom UI blocks like syntax-highlighted code snippets.
-
----
-
 ## API Reference
 
-### Server Functions
+### Server (`postfolio/server`)
 
-| Function | Description |
-|----------|-------------|
-| `allPosts(contentDir)` | Get all MDX posts from a directory (excludes drafts) |
-| `externalPosts(posts[])` | Fetch posts from external sources (excludes drafts) |
-| `Post(slug, contentDir)` | Get a single post by slug |
-| `MDXPost(slug, contentDir)` | Get a post with bundled MDX code |
-| `Slugs(contentDir)` | Get all slugs from a directory |
-| `generateTOC(content)` | Generate table of contents from markdown headings |
-| `generateSlug(text)` | Convert text to a URL-friendly slug |
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `allPosts` | `(contentDir: string) => Promise<BlogPostSource[]>` | Get all MDX posts (excludes drafts) |
+| `externalPosts` | `(inputs: ExternalPostInput[]) => Promise<BlogPostSource[]>` | Fetch external posts (excludes drafts) |
+| `MDXPost` | `(slug: string, options?) => Promise<...>` | Get post with bundled MDX code |
+| `Post` | `(slug: string, contentDir: string) => BlogPostSource \| undefined` | Get a single local post |
+| `Slugs` | `(options?: string \| { contentDir?, externalBlogs? }) => Promise<string[]>` | Get all slugs (local + external) |
+| `generateTOC` | `(content: string) => TOCItem[]` | Generate table of contents |
+| `generateSlug` | `(text: string) => string` | Convert text to URL-friendly slug |
 
-### Client Components
+### Client (`postfolio/client`)
 
-| Component/Hook | Description |
-|----------------|-------------|
+| Export | Description |
+|--------|-------------|
 | `Content` | Render bundled MDX content |
 | `useActiveHeading` | Track which heading is currently in view |
 
@@ -179,9 +216,10 @@ Postfolio allows you to provide custom React components to render your MDX conte
 
 | Type | Description |
 |------|-------------|
-| `BlogFrontmatter` | Frontmatter schema for blog posts |
-| `BlogPostSource` | Complete blog post data structure |
-| `ExternalPostInput` | Input type for external posts |
+| `BlogFrontmatter` | Frontmatter schema (`title`, `description`, `date`, `tags`, `author`, `draft`, `cover`, `cover_image`) |
+| `BlogPostSource` | Blog post data (`slug`, `filename`, `filePath`, `mdx`, `frontmatter`) |
+| `ExternalPostInput` | `string \| { url: string; extraFrontmatter?: object }` |
+| `TOCItem` | Table of contents entry (`level`, `text`, `slug`) |
 
 ---
 
@@ -189,4 +227,3 @@ Postfolio allows you to provide custom React components to render your MDX conte
 
 ---
 **Build with Love by Quddus Larek**
-
