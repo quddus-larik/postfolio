@@ -23,7 +23,8 @@ pnpm add postfolio
 yarn add postfolio
 ```
 
-It uses [mdx-bundler](https://github.com/kentcdodds/mdx-bundler) that uses esbuild to compile MDX code into jsx module so, you need to install also mdx-bundler.
+It uses [mdx-bundler](https://github.com/kentcdodds/mdx-bundler) that uses esbuild to compile MDX code into jsx module so, you need to install also mdx-bundler. 
+**Postfolio** gives you helper functions to build custom blog UI even TOC(table od content)
 
 ```bash
 npm i mdx-bundler
