@@ -23,6 +23,12 @@ pnpm add postfolio
 yarn add postfolio
 ```
 
+It uses [mdx-bundler](https://github.com/kentcdodds/mdx-bundler) that uses esbuild to compile MDX code into jsx module so, you need to install also mdx-bundler.
+
+```bash
+npm i mdx-bundler
+```
+
 ## Quick Start
 
 ### 1. Fetch and display posts
