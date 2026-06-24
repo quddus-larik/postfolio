@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import { bundleMDX } from "mdx-bundler";
+import remarkGfm from "remark-gfm";
 import { generateSlug } from "./utils";
 
 export type BlogFrontmatter = {
@@ -172,6 +173,10 @@ export async function MDXPost(
       const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({
         file: local.filePath,
         cwd: path.resolve(contentDir),
+        mdxOptions(options) {
+          options.remarkPlugins = [...(options.remarkPlugins ?? []), remarkGfm];
+          return options;
+        },
       });
       return { slug: local.slug, code, frontmatter, raw: local.mdx };
     }
@@ -183,6 +188,10 @@ export async function MDXPost(
     if (external) {
       const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({
         source: external.mdx,
+        mdxOptions(options) {
+          options.remarkPlugins = [...(options.remarkPlugins ?? []), remarkGfm];
+          return options;
+        },
       });
       return { slug: external.slug, code, frontmatter, raw: external.mdx };
     }
