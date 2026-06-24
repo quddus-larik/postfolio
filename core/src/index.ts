@@ -9,6 +9,6 @@ export {
   generateSlug,
   generateTOC
 } from "./server";
-export { Content, useActiveHeading } from "./client";
+export { useActiveHeading } from "./client";
 export type { BlogFrontmatter, BlogPostSource, ExternalPostInput } from "./server";
 
