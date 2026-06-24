@@ -25,7 +25,7 @@ export type BlogPostSource = {
   filename: string;
   filePath: string;
   mdx: string;
-  frontmatter?: BlogFrontmatter;
+  frontmatter: BlogFrontmatter;
 };
 
 export type ExternalPostInput =
@@ -63,31 +63,39 @@ function toSlug(filename: string): string {
 
 function getMdxFiles(dir: string): string[] {
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((f) => f.endsWith(".mdx"));
+  return fs.readdirSync(dir).filter((f: string) => f.endsWith(".mdx"));
 }
 
 function getLocalPost(slug: string, contentDir: string): BlogPostSource | undefined {
   const dir = path.resolve(contentDir);
   const file = getMdxFiles(dir).find((f) => toSlug(f) === slug);
   if (!file) return undefined;
-  return { slug, filename: file, filePath: path.resolve(dir, file), mdx: fs.readFileSync(path.resolve(dir, file), "utf8") };
+  const filePath = path.resolve(dir, file);
+  const mdx = fs.readFileSync(filePath, "utf8");
+  const { data: frontmatter } = matter(mdx);
+  return { slug, filename: file, filePath, mdx, frontmatter: frontmatter as BlogFrontmatter };
 }
 
 function toPostSource(article: DevToArticle, extra: object = {}): BlogPostSource {
+  const frontmatter = {
+    title: article.title,
+    description: article.description,
+    date: article.published_at,
+    tags: article.tags,
+    author: article.user?.name,
+    type: "external",
+    cover_image: article.cover_image,
+    ...extra,
+  };
+
+  const mdx = `# ${article.title}\n\n${article.body_markdown}`;
+
   return {
     slug: article.slug,
     filename: `${article.slug}.mdx`,
     filePath: article.url,
-    mdx: article.body_markdown,
-    frontmatter: {
-      title: article.title,
-      description: article.description,
-      date: article.published_at,
-      tags: article.tags,
-      author: article.user?.name,
-      cover_image: article.cover_image,
-      ...extra,
-    },
+    mdx,
+    frontmatter,
   };
 }
 
@@ -119,8 +127,8 @@ async function bundleExternal(slug: string, externalBlogs: ExternalPostInput[]) 
   if (externalBlogs.length === 0) return undefined;
   const post = (await externalPosts(externalBlogs)).find((p) => p.slug === slug);
   if (!post) return undefined;
-  const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({ source: post.mdx, ...mdxOptions() });
-  return { slug: post.slug, code, frontmatter, raw: post.mdx };
+  const { code } = await bundleMDX<BlogFrontmatter>({ source: post.mdx, ...mdxOptions() });
+  return { slug: post.slug, code, frontmatter: post.frontmatter, raw: post.mdx };
 }
 
 // --- Exported functions ---
@@ -154,8 +162,7 @@ export async function allPosts(contentDir: string): Promise<BlogPostSource[]> {
   return (await Slugs(contentDir))
     .map((slug) => getLocalPost(slug, contentDir))
     .filter((p): p is BlogPostSource => Boolean(p))
-    .map((p) => ({ ...p, frontmatter: matter(p.mdx).data as BlogFrontmatter }))
-    .filter((p) => p.frontmatter?.draft !== true);
+    .filter((p) => p.frontmatter.draft !== true);
 }
 
 export async function externalPosts(inputs: ExternalPostInput[]): Promise<BlogPostSource[]> {
