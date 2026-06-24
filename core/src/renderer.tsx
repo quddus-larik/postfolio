@@ -8,13 +8,8 @@ export function Content({
   components,
 }: {
   code: string;
-  components?: React.ComponentProps<
-    ReturnType<typeof getMDXComponent>
-  >["components"];
+  components?: Record<string, React.ComponentType<any>>;
 }) {
   const Render = React.useMemo(() => getMDXComponent(code), [code]);
-
-  // eslint-disable-next-line react-hooks/static-components -- mdx-bundler creates a component from compiled MDX at runtime.
   return <Render components={components} />;
 }
-
