@@ -115,19 +115,28 @@ function mdxOptions() {
   };
 }
 
-async function bundleLocal(slug: string, contentDir: string) {
+type MDXPostResult = {
+  slug: string;
+  code: string;
+  frontmatter: BlogFrontmatter;
+  raw: string;
+  html?: string;
+  filePath?: string;
+};
+
+async function bundleLocal(slug: string, contentDir: string): Promise<MDXPostResult | undefined> {
   const local = getLocalPost(slug, contentDir);
   if (!local) return undefined;
   const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({ file: local.filePath, cwd: path.resolve(contentDir), ...mdxOptions() });
-  return { slug: local.slug, code, frontmatter, raw: local.mdx, html: undefined };
+  return { slug: local.slug, code, frontmatter, raw: local.mdx, filePath: local.filePath };
 }
 
-async function bundleExternal(slug: string, externalBlogs: ExternalPostInput[]) {
+async function bundleExternal(slug: string, externalBlogs: ExternalPostInput[]): Promise<MDXPostResult | undefined> {
   if (externalBlogs.length === 0) return undefined;
   const post = (await externalPosts(externalBlogs)).find((p) => p.slug === slug);
   if (!post) return undefined;
   const { code } = await bundleMDX<BlogFrontmatter>({ source: post.mdx, ...mdxOptions() });
-  return { slug: post.slug, code, frontmatter: post.frontmatter, raw: post.mdx, html: post.html };
+  return { slug: post.slug, code, frontmatter: post.frontmatter, raw: post.mdx, html: post.html, filePath: post.filePath };
 }
 
 // --- Exported functions ---
