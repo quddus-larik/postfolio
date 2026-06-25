@@ -1,6 +1,6 @@
 ---
 title: "Installation Guide"
-description: "Learn how to integrate postfolio into your Next.js project."
+description: "Learn how to install and set up postfolio in your Next.js project."
 date: "2026-06-15"
 tags: ["installation", "guide", "setup", "nextjs"]
 author: "Abdul Quddus"
@@ -9,41 +9,137 @@ cover: https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070&
 avatar: https://github.com/quddus-larik.png
 ---
 
-## Introduction
+## What is Postfolio?
 
-**postfolio** is a lightweight, high-performance MDX engine designed specifically for portfolios and personal blogs. It simplifies the process of bundling MDX, extracting frontmatter, and generating interactive features like Table of Contents.
+**postfolio** is a plug-and-play MDX toolkit for Next.js portfolios. It handles bundling, frontmatter extraction, Table of Contents generation, and external blog integration so you can focus on writing and design.
+
+It is powered by mdx-bundler with esbuild under the hood, giving you fast builds and the ability to embed React components directly in your markdown.
 
 ## Installation
 
-To get started, install the package using your preferred package manager:
+Install the core package:
 
 <Snippet>npm install postfolio</Snippet>
 
-Or using pnpm:
-
 <Snippet>pnpm add postfolio</Snippet>
 
-## Setup
+<Snippet>yarn add postfolio</Snippet>
 
-### 1. Directory Structure
+### Peer Dependencies
 
-By default, we recommend storing your MDX files in a dedicated directory, for example: `content/blogs`.
+postfolio uses mdx-bundler which requires esbuild. Install it alongside:
 
-```text
+<Snippet>npm install mdx-bundler esbuild</Snippet>
+
+> postfolio is currently optimized for **Next.js** with the App Router.
+
+## Project Structure
+
+```
 my-project/
 ├── content/
 │   └── blogs/
-│       └── hello-world.mdx
+│       ├── my-first-post.mdx
+│       └── another-post.mdx
 ├── app/
+│   ├── page.tsx
 │   └── posts/
 │       └── [slug]/
 │           └── page.tsx
+├── components/
+│   └── mdx-components.tsx
 └── package.json
 ```
 
-### 2. Rendering a Post
+## MDX Frontmatter
 
-Create a dynamic route in your Next.js `app` directory to handle blog posts. You can use the `MDXPost` utility to fetch and bundle your content.
+Add frontmatter to the top of your .mdx files:
+
+```mdx
+---
+title: "My Post Title"
+description: "A brief description of the post."
+date: "2026-06-15"
+tags: ["nextjs", "react"]
+author: "Your Name"
+draft: false
+cover: https://example.com/cover.jpg
+---
+
+Your content here...
+```
+
+## Layout Components
+
+Create an MDX components file to customize how your content renders:
+
+```tsx
+// components/mdx-components.tsx
+"use client";
+
+import { Typography, Surface, Separator, Table, Button } from "@heroui/react";
+import { generateSlug } from "postfolio/client";
+import { Copy } from "@phosphor-icons/react";
+
+export const components = {
+  h1: ({ children }) => (
+    <Typography.Heading level={1} id={generateSlug(children)} className="mt-8 mb-4">
+      {children}
+    </Typography.Heading>
+  ),
+  h2: ({ children }) => (
+    <Typography.Heading level={2} id={generateSlug(children)} className="mt-8 mb-4">
+      {children}
+    </Typography.Heading>
+  ),
+  p: ({ children }) => (
+    <Typography.Paragraph size="base" className="leading-relaxed mb-4">
+      {children}
+    </Typography.Paragraph>
+  ),
+  pre: ({ children }) => (
+    <Surface variant="secondary" className="my-6 rounded-xl border border-border p-4 overflow-x-auto">
+      <pre className="text-sm font-mono leading-relaxed">{children}</pre>
+    </Surface>
+  ),
+  table: ({ children }) => (
+    <Table>
+      <Table.ScrollContainer>
+        <Table.Content aria-label="Table" className="min-w-full">
+          {children}
+        </Table.Content>
+      </Table.ScrollContainer>
+    </Table>
+  ),
+  hr: () => <Separator className="my-8" />,
+};
+```
+
+## Usage
+
+### List All Posts
+
+```tsx
+// app/page.tsx
+import { allPosts } from "postfolio/server";
+
+export default async function HomePage() {
+  const posts = await allPosts("content/blogs");
+
+  return (
+    <div>
+      {posts.map((post) => (
+        <a key={post.slug} href={`/posts/${post.slug}`}>
+          <h2>{post.frontmatter.title}</h2>
+          <p>{post.frontmatter.description}</p>
+        </a>
+      ))}
+    </div>
+  );
+}
+```
+
+### Render a Post
 
 ```tsx
 // app/posts/[slug]/page.tsx
@@ -51,60 +147,102 @@ import { MDXPost, generateTOC } from "postfolio/server";
 import { Content } from "postfolio/client";
 import { components } from "@/components/mdx-components";
 
-export default async function Page({ params }) {
+export default async function Post({ params }) {
   const { slug } = await params;
-  
-  // Fetch and bundle the post
-  const post = await MDXPost(slug, "content/blogs");
-  
-  if (!post) return <div>Post not found</div>;
+  const post = await MDXPost(slug, { contentDir: "content/blogs" });
+
+  if (!post) return null;
+
+  const toc = generateTOC(post.raw);
 
   return (
     <article>
       <h1>{post.frontmatter.title}</h1>
-      <Content code={post.code} components={components} />
+      <nav>
+        {toc.map((item) => (
+          <a key={item.slug} href={`#${item.slug}`}>
+            {item.text}
+          </a>
+        ))}
+      </nav>
+      <Content components={components} code={post.code} />
     </article>
   );
 }
 ```
 
-### 3. Generating Static Params
-
-For better performance and SEO, use `generateStaticParams` to pre-render your blog posts at build time.
+### Generate Static Params
 
 ```tsx
 import { Slugs } from "postfolio/server";
 
 export async function generateStaticParams() {
-  const slugs = Slugs("content/blogs");
+  const slugs = await Slugs("content/blogs");
   return slugs.map((slug) => ({ slug }));
 }
 ```
 
-## Features
-
-### Table of Contents
-
-You can easily generate a Table of Contents from the raw MDX content:
+### External Posts (Dev.to)
 
 ```tsx
-const toc = generateTOC(post.raw);
+import { externalPosts } from "postfolio/server";
+
+const posts = await externalPosts([
+  "https://dev.to/api/articles/username/post-slug-12345",
+  {
+    url: "https://dev.to/api/articles/username/another-post-67890",
+    extraFrontmatter: { featured: true },
+  },
+]);
 ```
 
-### Active Heading Tracking
+## API Reference
 
-Use our client hook to track which section the user is currently reading:
+### Server Functions (postfolio/server)
 
-```tsx
-"use client";
-import { useActiveHeading } from "postfolio/client";
+| Function | Parameters | Returns | Description |
+|----------|-----------|---------|-------------|
+| allPosts | (contentDir: string) | Promise of BlogPostSource array | Get all local MDX posts. Excludes drafts. |
+| externalPosts | (inputs: ExternalPostInput array) | Promise of BlogPostSource array | Fetch posts from Dev.to API. Excludes drafts. |
+| MDXPost | (slug: string, options?) | Promise of bundled post or undefined | Get a single post with bundled MDX code. |
+| Post | (slug: string, contentDir: string) | BlogPostSource or undefined | Get a single local post (no bundling). |
+| Slugs | (options?: string or object) | Promise of string array | Get all slugs from local and/or external sources. |
+| generateTOC | (content: string) | TOCItem array | Generate Table of Contents from markdown headings. |
+| generateSlug | (text: string) | string | Convert text to a URL-friendly slug. |
 
-function MyTOC({ toc }) {
-  const activeId = useActiveHeading();
-  // ... render your TOC
-}
-```
+### MDXPost Options
 
-## Next Steps
+| Option | Type | Description |
+|--------|------|-------------|
+| contentDir | string | Directory containing local MDX files |
+| externalBlogs | ExternalPostInput array | Array of external post URLs |
 
-Now that you have postfolio installed, check out our [Theming Guide](#) to customize the look and feel of your blog components.
+### Slugs Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| contentDir | string | Directory containing local MDX files |
+| externalBlogs | ExternalPostInput array | Array of external post URLs |
+
+### ExternalPostInput
+
+| Type | Description |
+|------|-------------|
+| string | URL to Dev.to article API endpoint |
+| object with url and optional extraFrontmatter | URL with additional frontmatter to merge |
+
+### Client (postfolio/client)
+
+| Export | Description |
+|--------|-------------|
+| Content | Render bundled MDX content with custom components |
+| useActiveHeading | Hook to track which heading is currently in view |
+| generateSlug | Convert text to a URL-friendly slug |
+
+### Types
+
+| Type | Fields |
+|------|--------|
+| BlogFrontmatter | title, description, date, tags, author, draft, cover, cover_image |
+| BlogPostSource | slug, filename, filePath, mdx, frontmatter |
+| TOCItem | level, text, slug |

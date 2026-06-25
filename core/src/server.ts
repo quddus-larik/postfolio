@@ -6,6 +6,8 @@ import { bundleMDX } from "mdx-bundler";
 import remarkGfm from "remark-gfm";
 import { generateSlug } from "./utils";
 
+// --- Types ---
+
 export type BlogFrontmatter = {
   title?: string;
   description?: string;
@@ -23,35 +25,32 @@ export type BlogPostSource = {
   filename: string;
   filePath: string;
   mdx: string;
-  frontmatter?: BlogFrontmatter;
+  frontmatter: BlogFrontmatter;
+  html?: string;
 };
 
 export type ExternalPostInput =
   | string
   | { url: string; extraFrontmatter?: object };
 
-type TOCItem = {
-  level: number;
-  text: string;
-  slug: string;
-};
+type TOCItem = { level: number; text: string; slug: string };
 
 type DevToArticle = {
   slug: string;
   url: string;
   body_markdown: string;
+  body_html: string;
   title: string;
   description: string;
   published_at: string;
   tags: string[];
   cover_image?: string;
   user?: { name?: string };
-  [key: string]: unknown;
 };
 
 export { generateSlug };
 
-// --- Local file helpers ---
+// --- Helpers ---
 
 function toSlug(filename: string): string {
   return filename
@@ -64,31 +63,19 @@ function toSlug(filename: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-function getMdxFiles(contentDir: string): string[] {
-  if (!fs.existsSync(contentDir)) return [];
-  return fs.readdirSync(contentDir).filter((f: string) => f.endsWith(".mdx"));
+function getMdxFiles(dir: string): string[] {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((f) => f.endsWith(".mdx"));
 }
 
 function getLocalPost(slug: string, contentDir: string): BlogPostSource | undefined {
   const dir = path.resolve(contentDir);
   const file = getMdxFiles(dir).find((f) => toSlug(f) === slug);
   if (!file) return undefined;
-
   const filePath = path.resolve(dir, file);
-  return { slug, filename: file, filePath, mdx: fs.readFileSync(filePath, "utf8") };
-}
-
-// --- External post helpers ---
-
-function extractFrontmatter(article: DevToArticle): BlogFrontmatter {
-  return {
-    title: article.title,
-    description: article.description,
-    date: article.published_at,
-    tags: article.tags,
-    author: article.user?.name,
-    cover_image: article.cover_image,
-  };
+  const mdx = fs.readFileSync(filePath, "utf8");
+  const { data: frontmatter } = matter(mdx);
+  return { slug, filename: file, filePath, mdx, frontmatter: frontmatter as BlogFrontmatter };
 }
 
 function toPostSource(article: DevToArticle, extra: object = {}): BlogPostSource {
@@ -97,26 +84,65 @@ function toPostSource(article: DevToArticle, extra: object = {}): BlogPostSource
     filename: `${article.slug}.mdx`,
     filePath: article.url,
     mdx: article.body_markdown,
-    frontmatter: { ...extractFrontmatter(article), ...extra },
+    html: article.body_html,
+    frontmatter: {
+      title: article.title,
+      description: article.description,
+      date: article.published_at,
+      tags: article.tags,
+      author: article.user?.name,
+      type: "external",
+      cover_image: article.cover_image,
+      ...extra,
+    },
   };
 }
 
 async function fetchExternalPost(input: ExternalPostInput): Promise<BlogPostSource> {
   const url = typeof input === "string" ? input : input.url;
   const extra = typeof input === "string" ? {} : (input.extraFrontmatter ?? {});
-
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch post from ${url}`);
+  return toPostSource(await res.json(), extra);
+}
 
-  const article: DevToArticle = await res.json();
-  return toPostSource(article, extra);
+function mdxOptions() {
+  return {
+    mdxOptions(options: any) {
+      options.remarkPlugins = [...(options.remarkPlugins ?? []), remarkGfm];
+      return options;
+    },
+  };
+}
+
+type MDXPostResult = {
+  slug: string;
+  code: string;
+  frontmatter: BlogFrontmatter;
+  raw: string;
+  html?: string;
+  filePath?: string;
+};
+
+async function bundleLocal(slug: string, contentDir: string): Promise<MDXPostResult | undefined> {
+  const local = getLocalPost(slug, contentDir);
+  if (!local) return undefined;
+  const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({ file: local.filePath, cwd: path.resolve(contentDir), ...mdxOptions() });
+  return { slug: local.slug, code, frontmatter, raw: local.mdx, filePath: local.filePath };
+}
+
+async function bundleExternal(slug: string, externalBlogs: ExternalPostInput[]): Promise<MDXPostResult | undefined> {
+  if (externalBlogs.length === 0) return undefined;
+  const post = (await externalPosts(externalBlogs)).find((p) => p.slug === slug);
+  if (!post) return undefined;
+  const { code } = await bundleMDX<BlogFrontmatter>({ source: post.mdx, ...mdxOptions() });
+  return { slug: post.slug, code, frontmatter: post.frontmatter, raw: post.mdx, html: post.html, filePath: post.filePath };
 }
 
 // --- Exported functions ---
 
 export function generateTOC(content: string): TOCItem[] {
-  const regex = /^(#{1,6})\s+(.+)$/gm;
-  return [...content.matchAll(regex)].map(([_, hashes, text]) => ({
+  return [...content.matchAll(/^(#{1,6})\s+(.+)$/gm)].map(([_, hashes, text]) => ({
     level: hashes.length,
     text: text.trim(),
     slug: generateSlug(text.trim()),
@@ -127,19 +153,12 @@ export async function Slugs(
   options?: string | { contentDir?: string; externalBlogs?: ExternalPostInput[] }
 ): Promise<string[]> {
   const { contentDir, externalBlogs = [] } =
-    typeof options === "string"
-      ? { contentDir: options, externalBlogs: [] }
-      : (options ?? {});
+    typeof options === "string" ? { contentDir: options, externalBlogs: [] } : (options ?? {});
 
   const localSlugs = contentDir ? getMdxFiles(contentDir).map(toSlug) : [];
+  if (externalBlogs.length === 0) return localSlugs;
 
-  if (externalBlogs.length === 0) {
-    return localSlugs;
-  }
-
-  const posts = await externalPosts(externalBlogs);
-  const externalSlugs = posts.map((p) => p.slug);
-
+  const externalSlugs = (await externalPosts(externalBlogs)).map((p) => p.slug);
   return [...externalSlugs, ...localSlugs];
 }
 
@@ -148,17 +167,14 @@ export function Post(slug: string, contentDir: string): BlogPostSource | undefin
 }
 
 export async function allPosts(contentDir: string): Promise<BlogPostSource[]> {
-  const slugs = await Slugs(contentDir);
-  return slugs
+  return (await Slugs(contentDir))
     .map((slug) => getLocalPost(slug, contentDir))
     .filter((p): p is BlogPostSource => Boolean(p))
-    .map((p) => ({ ...p, frontmatter: matter(p.mdx).data as BlogFrontmatter }))
-    .filter((p) => p.frontmatter?.draft !== true);
+    .filter((p) => p.frontmatter.draft !== true);
 }
 
 export async function externalPosts(inputs: ExternalPostInput[]): Promise<BlogPostSource[]> {
-  const results = await Promise.all(inputs.map(fetchExternalPost));
-  return results.filter((p) => p.frontmatter?.draft !== true);
+  return (await Promise.all(inputs.map(fetchExternalPost))).filter((p) => p.frontmatter?.draft !== true);
 }
 
 export async function MDXPost(
@@ -166,36 +182,5 @@ export async function MDXPost(
   options?: { contentDir?: string; externalBlogs?: ExternalPostInput[] }
 ) {
   const { contentDir, externalBlogs = [] } = options ?? {};
-
-  if (contentDir) {
-    const local = getLocalPost(slug, contentDir);
-    if (local) {
-      const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({
-        file: local.filePath,
-        cwd: path.resolve(contentDir),
-        mdxOptions(options) {
-          options.remarkPlugins = [...(options.remarkPlugins ?? []), remarkGfm];
-          return options;
-        },
-      });
-      return { slug: local.slug, code, frontmatter, raw: local.mdx };
-    }
-  }
-
-  if (externalBlogs.length > 0) {
-    const posts = await externalPosts(externalBlogs);
-    const external = posts.find((p) => p.slug === slug);
-    if (external) {
-      const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({
-        source: external.mdx,
-        mdxOptions(options) {
-          options.remarkPlugins = [...(options.remarkPlugins ?? []), remarkGfm];
-          return options;
-        },
-      });
-      return { slug: external.slug, code, frontmatter, raw: external.mdx };
-    }
-  }
-
-  return undefined;
+  return (contentDir ? await bundleLocal(slug, contentDir) : undefined) ?? (await bundleExternal(slug, externalBlogs));
 }

@@ -3,7 +3,9 @@
 import { type ComponentProps } from "react";
 import { Button, Typography, Surface, Separator } from "@heroui/react";
 import { generateSlug } from "postfolio/client";
-import { Copy } from "@phosphor-icons/react";
+import { CopyIcon } from "@phosphor-icons/react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 
 type HTMLProps = ComponentProps<"div">;
 
@@ -50,14 +52,10 @@ export const components: any = {
     </ol>
   ),
 
-  li: ({ children }: HTMLProps) => (
-    <li className="text-sm md:text-base">
-      {children}
-    </li>
-  ),
+  li: ({ children }: HTMLProps) => <li className="text-sm md:text-base">{children}</li>,
 
   blockquote: ({ children }: HTMLProps) => (
-    <blockquote className="border-l-4 border-accent bg-accent/5 p-4 my-6 italic rounded-r-xl">
+    <blockquote className="border-l-4 border-accent bg-accent/5 p-4 my-6 italic rounded-r-2xl">
       {children}
     </blockquote>
   ),
@@ -65,52 +63,78 @@ export const components: any = {
   hr: () => <Separator className="my-8" />,
 
   code: ({ children }: HTMLProps) => (
-    <Typography type="code" className="text-accent-foreground bg-transparent px-1.5 py-0.5 rounded-md text-sm">
+    <Typography
+      type="code"
+      className="text-accent-foreground bg-transparent px-1.5 py-0.5 rounded-md text-sm"
+    >
       {children}
     </Typography>
   ),
 
   pre: ({ children }: any) => {
-    // Extract code content if possible
     const code = children?.props?.children || "";
-    
+    const className = children?.props?.className || "";
+    const language = className.replace(/language-/, "") || "text";
+
     return (
-      <Surface variant="secondary" className="my-6 overflow-hidden rounded-xl border border-border group relative">
+      <div className="my-6 overflow-hidden rounded-2xl border border-border group relative">
         <div className="flex items-center justify-between px-4 py-2 bg-default-50 border-b border-separator">
-          <Typography className="text-xs font-mono text-muted">Code</Typography>
-          <Button 
-            isIconOnly 
-            size="sm" 
-            variant="ghost" 
+          <Typography className="text-xs font-mono text-muted">{language}</Typography>
+          <Button
+            isIconOnly
+            size="sm"
+            variant="ghost"
             className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
             onPress={() => navigator.clipboard.writeText(code)}
           >
-            <Copy size={14} />
+            <CopyIcon size={14} />
           </Button>
         </div>
-        <div className="p-4 overflow-x-auto">
-          <pre className="text-sm font-mono leading-relaxed">
-            {children}
-          </pre>
-        </div>
-      </Surface>
+        <SyntaxHighlighter
+          language={language}
+          style={oneDark}
+          customStyle={{
+            margin: 0,
+            padding: "1rem",
+            borderRadius: 0,
+            fontSize: "0.875rem",
+            lineHeight: "1.5",
+          }}
+        >
+          {code}
+        </SyntaxHighlighter>
+      </div>
     );
   },
 
+  table: ({ children }: HTMLProps) => (
+    <div className="table-root table-root--primary">
+      <div className="table__scroll-container">
+        <table className="table__content">{children}</table>
+      </div>
+    </div>
+  ),
+
+  thead: ({ children }: HTMLProps) => <thead className="table__header">{children}</thead>,
+  tbody: ({ children }: HTMLProps) => <tbody className="table__body">{children}</tbody>,
+  tr: ({ children, ...props }: any) => <tr className="table__row" {...props}>{children}</tr>,
+  th: ({ children, ...props }: any) => <th className="table__column" {...props}>{children}</th>,
+  td: ({ children, ...props }: any) => <td className="table__cell" {...props}>{children}</td>,
+
   Snippet: ({ children }: { children: string }) => (
-    <Surface className="my-4 px-6 py-4 flex items-center justify-between border border-border rounded-xl font-mono text-sm bg-surface overflow-hidden">
+    <Surface className="my-4 px-6 py-4 flex items-center justify-between border border-border rounded-2xl font-mono text-sm bg-surface overflow-hidden">
       <div className="flex items-center gap-3 overflow-hidden">
         <span className="text-accent shrink-0">$</span>
         <span className="truncate">{children}</span>
       </div>
-      <Button 
-        isIconOnly 
-        variant="ghost" 
-        size="sm" 
+      <Button
+        isIconOnly
+        variant="ghost"
+        size="sm"
         className="shrink-0 ml-4"
         onPress={() => navigator.clipboard.writeText(children)}
       >
-        <Copy size={16} />
+        <CopyIcon size={16} />
       </Button>
     </Surface>
   ),
