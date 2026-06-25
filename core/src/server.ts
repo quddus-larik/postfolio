@@ -26,6 +26,7 @@ export type BlogPostSource = {
   filePath: string;
   mdx: string;
   frontmatter: BlogFrontmatter;
+  html?: string;
 };
 
 export type ExternalPostInput =
@@ -38,6 +39,7 @@ type DevToArticle = {
   slug: string;
   url: string;
   body_markdown: string;
+  body_html: string;
   title: string;
   description: string;
   published_at: string;
@@ -63,7 +65,7 @@ function toSlug(filename: string): string {
 
 function getMdxFiles(dir: string): string[] {
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((f: string) => f.endsWith(".mdx"));
+  return fs.readdirSync(dir).filter((f) => f.endsWith(".mdx"));
 }
 
 function getLocalPost(slug: string, contentDir: string): BlogPostSource | undefined {
@@ -77,25 +79,22 @@ function getLocalPost(slug: string, contentDir: string): BlogPostSource | undefi
 }
 
 function toPostSource(article: DevToArticle, extra: object = {}): BlogPostSource {
-  const frontmatter = {
-    title: article.title,
-    description: article.description,
-    date: article.published_at,
-    tags: article.tags,
-    author: article.user?.name,
-    type: "external",
-    cover_image: article.cover_image,
-    ...extra,
-  };
-
-  const mdx = `# ${article.title}\n\n${article.body_markdown}`;
-
   return {
     slug: article.slug,
     filename: `${article.slug}.mdx`,
     filePath: article.url,
-    mdx,
-    frontmatter,
+    mdx: article.body_markdown,
+    html: article.body_html,
+    frontmatter: {
+      title: article.title,
+      description: article.description,
+      date: article.published_at,
+      tags: article.tags,
+      author: article.user?.name,
+      type: "external",
+      cover_image: article.cover_image,
+      ...extra,
+    },
   };
 }
 
@@ -120,7 +119,7 @@ async function bundleLocal(slug: string, contentDir: string) {
   const local = getLocalPost(slug, contentDir);
   if (!local) return undefined;
   const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({ file: local.filePath, cwd: path.resolve(contentDir), ...mdxOptions() });
-  return { slug: local.slug, code, frontmatter, raw: local.mdx };
+  return { slug: local.slug, code, frontmatter, raw: local.mdx, html: undefined };
 }
 
 async function bundleExternal(slug: string, externalBlogs: ExternalPostInput[]) {
@@ -128,7 +127,7 @@ async function bundleExternal(slug: string, externalBlogs: ExternalPostInput[]) 
   const post = (await externalPosts(externalBlogs)).find((p) => p.slug === slug);
   if (!post) return undefined;
   const { code } = await bundleMDX<BlogFrontmatter>({ source: post.mdx, ...mdxOptions() });
-  return { slug: post.slug, code, frontmatter: post.frontmatter, raw: post.mdx };
+  return { slug: post.slug, code, frontmatter: post.frontmatter, raw: post.mdx, html: post.html };
 }
 
 // --- Exported functions ---
