@@ -84,6 +84,9 @@ importers:
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
+      unist-util-visit:
+        specifier: ^5.1.0
+        version: 5.1.0
     devDependencies:
       '@types/node':
         specifier: ^20

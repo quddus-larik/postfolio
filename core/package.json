@@ -44,7 +44,8 @@
     "gray-matter": "^4.0.3",
     "mdx-bundler": "^10.1.1",
     "remark-gfm": "^4.0.1",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "unist-util-visit": "^5.1.0"
   },
   "peerDependencies": {
     "react": ">=19"
