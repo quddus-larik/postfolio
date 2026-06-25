@@ -22,9 +22,9 @@ export async function generateStaticParams() {
 export default async function Page({
   params,
 }: {
-  params:{ slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = params;
+  const { slug } = await params;
   const post = await MDXPost(slug, {
     contentDir: "content/blogs",
     externalBlogs: externalPostUrls,
@@ -76,7 +76,7 @@ export default async function Page({
             </Description>
           </div>
         )}
-        <Content code={post.code} components={components} />
+        <Content code={post.code} html={post.html} components={components} />
         <Separator className="my-2" />
         <div className="flex flex-row gap-2 items-center justify-start">
           <Label>Source</Label>
