@@ -1,46 +1,36 @@
 import { components } from "@/components/mdx-components";
-import {
-  Label,
-  Description,
-  Separator,
-  Avatar,
-} from "@heroui/react";
-import { MDXPost, Slugs, externalPosts, generateTOC } from "postfolio/server";
+import { Label, Description, Separator, Avatar } from "@heroui/react";
+import { MDXPost, Slugs, generateTOC } from "postfolio/server";
 import { Content } from "postfolio/renderer";
 import { notFound } from "next/navigation";
 import { TableOfContents } from "@/components/table-of-contents";
 import type { ExternalPostInput } from "postfolio/server";
 
-
 const externalPostUrls: ExternalPostInput[] = [
-  { 
-    url: "https://dev.to/api/articles/quddus-larik/unexpected-ui-system-in-my-first-project-5478",
-    extraFrontmatter: {
-      
-    }
-  },
+  "https://dev.to/api/articles/quddus-larik/unexpected-ui-system-in-my-first-project-5478",
+  "https://dev.to/api/articles/quddus-larik/jsx-a-formal-view-javascript-xml-syntax-extension-3kj5",
 ];
 
 export async function generateStaticParams() {
-  const localSlugs = await Slugs({ contentDir: "content/blogs", externalBlogs: externalPostUrls});
-  return localSlugs.map((slug) => ({ slug }));
+  const slugs = await Slugs({
+    contentDir: "content/blogs",
+    externalBlogs: externalPostUrls,
+  });
+  return slugs.map((slug) => ({ slug }));
 }
 
 export default async function Page({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params:{ slug: string };
 }) {
-  const { slug } = await params;
-
+  const { slug } = params;
   const post = await MDXPost(slug, {
     contentDir: "content/blogs",
     externalBlogs: externalPostUrls,
   });
 
-  if (!post) {
-    notFound();
-  }
+  if (!post) notFound();
 
   const toc = generateTOC(post.raw);
   const coverImage = post.frontmatter.cover || post.frontmatter.cover_image;
@@ -51,45 +41,53 @@ export default async function Page({
         <div className="flex flex-row gap-3">
           <Avatar>
             <Avatar.Image
-              src={post.frontmatter["avatar"] as string}
+              src={post?.frontmatter["avatar"] as string}
               alt="avatar"
             />
             <Avatar.Fallback>QL</Avatar.Fallback>
           </Avatar>
           <div className="flex flex-col gap-1 justify-start">
             <Label>Written by</Label>
-            <Description>{post.frontmatter.author}</Description>
+            <Description>{post.frontmatter.author || "Quddus"}</Description>
           </div>
           <Separator orientation="vertical" />
           <div className="flex flex-col gap-1 justify-start">
             <Label>At</Label>
-            <Description>{post.frontmatter.date}</Description>
+            <Description>{post.frontmatter.date || Date.now()}</Description>
           </div>
         </div>
-
         <TableOfContents toc={toc} />
       </div>
       <article className="space-y-3">
         {coverImage && (
-          <div className="h-32 w-full">
+          <div className="h-96 w-full">
             <img
               src={coverImage as string}
-              alt={post.frontmatter.title || "Post cover"}
+              alt={post.frontmatter.title || "&title&"}
               className="w-full h-full object-cover rounded-3xl"
             />
           </div>
         )}
-        <div className="my-6">
-          <h1 className="text-4xl font-bold">{post.frontmatter.title}</h1>
-          <Description className="text-base">
-            {post.frontmatter.description}
-          </Description>
-        </div>
-        <Content components={components} code={post.code} />
+        {post.frontmatter?.type == "external" && (
+          <div className="my-6">
+            <h1 className="text-4xl font-bold">{post.frontmatter.title || "&title&"}</h1>
+            <Description className="text-base">
+              {post.frontmatter.description}
+            </Description>
+          </div>
+        )}
+        <Content code={post.code} components={components} />
         <Separator className="my-2" />
         <div className="flex flex-row gap-2 items-center justify-start">
           <Label>Source</Label>
-          
+          <a
+            href={`https://github.com/quddus-larik/postfolio/blob/main/content/blogs/${post.slug}.mdx`}
+            className="hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Description>View on GitHub</Description>
+          </a>
         </div>
       </article>
     </div>
