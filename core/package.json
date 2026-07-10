@@ -1,6 +1,6 @@
 {
   "name": "postfolio",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "type": "module",
   "main": "./dist/server.js",
   "types": "./dist/server.d.ts",
