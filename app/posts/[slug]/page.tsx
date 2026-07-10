@@ -26,7 +26,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   const toc = generateTOC(post.raw);
   const coverImage = post.frontmatter.cover || post.frontmatter.cover_image;
-  const isExternal = (post as any).html != null;
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8 space-y-3">
@@ -58,23 +57,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           <h1 className="text-4xl font-bold">{post.frontmatter.title}</h1>
           <Description className="text-base">{post.frontmatter.description}</Description>
         </div>
-        {isExternal ? (
-          <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: (post as any).html }} />
-        ) : (
-          <Content code={post.code} components={components} />
-        )}
+        <Content code={post.code} markdown={post.markdown} components={components} />
         <Separator className="my-2" />
         <div className="flex flex-row gap-2 items-center justify-start">
           <Label>Source</Label>
-          {isExternal ? (
-            <a href={post.filePath} target="_blank" rel="noopener noreferrer" className="hover:underline">
-              <Description>{post.filePath}</Description>
-            </a>
-          ) : (
-            <a href={`https://github.com/quddus-larik/postfolio/blob/main/content/blogs/${post.slug}.mdx`} className="hover:underline" target="_blank" rel="noopener noreferrer">
-              <Description>View on GitHub</Description>
-            </a>
-          )}
+          <a href={post.frontmatter.type === "external" ? (post as any).filePath : `https://github.com/quddus-larik/postfolio/blob/main/content/blogs/${post.slug}.mdx`} target="_blank" rel="noopener noreferrer" className="hover:underline">
+            <Description>{post.frontmatter.type === "external" ? "View on Dev.to" : "View on GitHub"}</Description>
+          </a>
         </div>
       </article>
     </div>

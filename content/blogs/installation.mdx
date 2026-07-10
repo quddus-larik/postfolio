@@ -11,27 +11,21 @@ avatar: https://github.com/quddus-larik.png
 
 ## What is Postfolio?
 
-**postfolio** is a plug-and-play MDX toolkit for Next.js portfolios. It handles bundling, frontmatter extraction, Table of Contents generation, and external blog integration so you can focus on writing and design.
+**postfolio** is a plug-and-play MDX toolkit for Next.js portfolios. It handles content bundling, frontmatter extraction, Table of Contents generation, and external blog integration from Dev.to — so you can focus on writing and design.
 
-It is powered by mdx-bundler with esbuild under the hood, giving you fast builds and the ability to embed React components directly in your markdown.
+Local posts are compiled via `mdx-bundler` (supports React components in markdown). External posts are rendered via `react-markdown` with GFM support. Both use the same `<Content />` component.
 
 ## Installation
 
-Install the core package:
+Install the package and its peer dependencies:
 
-<Snippet>npm install postfolio</Snippet>
+<Snippet>npm install postfolio mdx-bundler esbuild</Snippet>
 
-<Snippet>pnpm add postfolio</Snippet>
+<Snippet>pnpm add postfolio mdx-bundler esbuild</Snippet>
 
-<Snippet>yarn add postfolio</Snippet>
+<Snippet>yarn add postfolio mdx-bundler esbuild</Snippet>
 
-### Peer Dependencies
-
-postfolio uses mdx-bundler which requires esbuild. Install it alongside:
-
-<Snippet>npm install mdx-bundler esbuild</Snippet>
-
-> postfolio is currently optimized for **Next.js** with the App Router.
+> postfolio is optimized for **Next.js** with the App Router.
 
 ## Project Structure
 
@@ -69,17 +63,30 @@ cover: https://example.com/cover.jpg
 Your content here...
 ```
 
-## Layout Components
+| Field | Type | Description |
+|-------|------|-------------|
+| title | string | Post title |
+| description | string | Short description |
+| date | string | Publication date |
+| tags | string array | Post tags |
+| author | string | Author name |
+| draft | boolean | Set true to exclude from listings |
+| cover | string | Cover image URL |
+| cover_image | string | Alternative cover image field (used by Dev.to) |
 
-Create an MDX components file to customize how your content renders:
+## MDX Components
+
+Create a components file to customize how your content renders. This works for both local MDX and external markdown posts.
 
 ```tsx
 // components/mdx-components.tsx
 "use client";
 
-import { Typography, Surface, Separator, Table, Button } from "@heroui/react";
+import { Typography, Surface, Separator, Button } from "@heroui/react";
 import { generateSlug } from "postfolio/client";
-import { Copy } from "@phosphor-icons/react";
+import { CopyIcon } from "@phosphor-icons/react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 
 export const components = {
   h1: ({ children }) => (
@@ -97,20 +104,20 @@ export const components = {
       {children}
     </Typography.Paragraph>
   ),
-  pre: ({ children }) => (
-    <Surface variant="secondary" className="my-6 rounded-xl border border-border p-4 overflow-x-auto">
-      <pre className="text-sm font-mono leading-relaxed">{children}</pre>
-    </Surface>
-  ),
-  table: ({ children }) => (
-    <Table>
-      <Table.ScrollContainer>
-        <Table.Content aria-label="Table" className="min-w-full">
-          {children}
-        </Table.Content>
-      </Table.ScrollContainer>
-    </Table>
-  ),
+  pre: ({ children }) => {
+    const code = children?.props?.children || "";
+    const language = children?.props?.className?.replace("language-", "") || "text";
+    return (
+      <div className="my-6 overflow-hidden rounded-xl border border-border group relative">
+        <div className="flex items-center justify-between px-4 py-2 bg-default-50 border-b border-separator">
+          <Typography className="text-xs font-mono text-muted">{language}</Typography>
+        </div>
+        <SyntaxHighlighter language={language} style={oneDark} customStyle={{ margin: 0, padding: "1rem", borderRadius: 0, fontSize: "0.875rem" }}>
+          {code}
+        </SyntaxHighlighter>
+      </div>
+    );
+  },
   hr: () => <Separator className="my-8" />,
 };
 ```
@@ -139,17 +146,31 @@ export default async function HomePage() {
 }
 ```
 
-### Render a Post
+### Render a Post (Local + External)
+
+The `Content` component handles both MDX (local) and markdown (external) content through a single API.
 
 ```tsx
 // app/posts/[slug]/page.tsx
-import { MDXPost, generateTOC } from "postfolio/server";
-import { Content } from "postfolio/client";
+import { MDXPost, Slugs, generateTOC } from "postfolio/server";
+import { Content } from "postfolio/renderer";
 import { components } from "@/components/mdx-components";
 
-export default async function Post({ params }) {
+const externalPostUrls = [
+  "https://dev.to/api/articles/username/post-slug-12345",
+];
+
+export async function generateStaticParams() {
+  const slugs = await Slugs({ contentDir: "content/blogs", externalBlogs: externalPostUrls });
+  return slugs.map((slug) => ({ slug }));
+}
+
+export default async function Page({ params }) {
   const { slug } = await params;
-  const post = await MDXPost(slug, { contentDir: "content/blogs" });
+  const post = await MDXPost(slug, {
+    contentDir: "content/blogs",
+    externalBlogs: externalPostUrls,
+  });
 
   if (!post) return null;
 
@@ -160,29 +181,18 @@ export default async function Post({ params }) {
       <h1>{post.frontmatter.title}</h1>
       <nav>
         {toc.map((item) => (
-          <a key={item.slug} href={`#${item.slug}`}>
-            {item.text}
-          </a>
+          <a key={item.slug} href={`#${item.slug}`}>{item.text}</a>
         ))}
       </nav>
-      <Content components={components} code={post.code} />
+      <Content code={post.code} markdown={post.markdown} components={components} />
     </article>
   );
 }
 ```
 
-### Generate Static Params
-
-```tsx
-import { Slugs } from "postfolio/server";
-
-export async function generateStaticParams() {
-  const slugs = await Slugs("content/blogs");
-  return slugs.map((slug) => ({ slug }));
-}
-```
-
 ### External Posts (Dev.to)
+
+Fetch posts from Dev.to and display them alongside your local content.
 
 ```tsx
 import { externalPosts } from "postfolio/server";
@@ -196,6 +206,8 @@ const posts = await externalPosts([
 ]);
 ```
 
+External posts are rendered using `react-markdown` with GFM support (tables, strikethrough, task lists). Local posts use `mdx-bundler` for full MDX/JSX support. Both share the same `<Content />` component and custom component overrides.
+
 ## API Reference
 
 ### Server Functions (postfolio/server)
@@ -204,8 +216,8 @@ const posts = await externalPosts([
 |----------|-----------|---------|-------------|
 | allPosts | (contentDir: string) | Promise of BlogPostSource array | Get all local MDX posts. Excludes drafts. |
 | externalPosts | (inputs: ExternalPostInput array) | Promise of BlogPostSource array | Fetch posts from Dev.to API. Excludes drafts. |
-| MDXPost | (slug: string, options?) | Promise of bundled post or undefined | Get a single post with bundled MDX code. |
-| Post | (slug: string, contentDir: string) | BlogPostSource or undefined | Get a single local post (no bundling). |
+| MDXPost | (slug: string, options?) | Promise of MDXPostResult or undefined | Get a single post with compiled content. |
+| Post | (slug: string, contentDir: string) | BlogPostSource or undefined | Get a single local post (no compilation). |
 | Slugs | (options?: string or object) | Promise of string array | Get all slugs from local and/or external sources. |
 | generateTOC | (content: string) | TOCItem array | Generate Table of Contents from markdown headings. |
 | generateSlug | (text: string) | string | Convert text to a URL-friendly slug. |
@@ -216,6 +228,16 @@ const posts = await externalPosts([
 |--------|------|-------------|
 | contentDir | string | Directory containing local MDX files |
 | externalBlogs | ExternalPostInput array | Array of external post URLs |
+
+### MDXPostResult
+
+| Field | Type | Description |
+|-------|------|-------------|
+| slug | string | URL-friendly post identifier |
+| code | string or undefined | Compiled MDX code (local posts only) |
+| markdown | string or undefined | Raw markdown (external posts only) |
+| frontmatter | BlogFrontmatter | Post metadata |
+| raw | string | Original markdown/MDX source |
 
 ### Slugs Options
 
@@ -229,13 +251,18 @@ const posts = await externalPosts([
 | Type | Description |
 |------|-------------|
 | string | URL to Dev.to article API endpoint |
-| object with url and optional extraFrontmatter | URL with additional frontmatter to merge |
+| { url: string; extraFrontmatter?: object } | URL with additional frontmatter to merge |
 
-### Client (postfolio/client)
+### Client Components (postfolio/renderer)
 
 | Export | Description |
 |--------|-------------|
-| Content | Render bundled MDX content with custom components |
+| Content | Render MDX or markdown content with custom components. Accepts `code`, `markdown`, and `components` props. |
+
+### Client Hooks (postfolio/client)
+
+| Export | Description |
+|--------|-------------|
 | useActiveHeading | Hook to track which heading is currently in view |
 | generateSlug | Convert text to a URL-friendly slug |
 
@@ -245,4 +272,5 @@ const posts = await externalPosts([
 |------|--------|
 | BlogFrontmatter | title, description, date, tags, author, draft, cover, cover_image |
 | BlogPostSource | slug, filename, filePath, mdx, frontmatter |
+| ExternalPostInput | string or { url, extraFrontmatter } |
 | TOCItem | level, text, slug |

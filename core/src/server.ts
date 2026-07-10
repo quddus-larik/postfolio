@@ -26,7 +26,6 @@ export type BlogPostSource = {
   filePath: string;
   mdx: string;
   frontmatter: BlogFrontmatter;
-  html?: string;
 };
 
 export type ExternalPostInput =
@@ -39,7 +38,6 @@ type DevToArticle = {
   slug: string;
   url: string;
   body_markdown: string;
-  body_html: string;
   title: string;
   description: string;
   published_at: string;
@@ -84,7 +82,6 @@ function toPostSource(article: DevToArticle, extra: object = {}): BlogPostSource
     filename: `${article.slug}.mdx`,
     filePath: article.url,
     mdx: article.body_markdown,
-    html: article.body_html,
     frontmatter: {
       title: article.title,
       description: article.description,
@@ -117,26 +114,28 @@ function mdxOptions() {
 
 type MDXPostResult = {
   slug: string;
-  code: string;
+  code?: string;
+  markdown?: string;
   frontmatter: BlogFrontmatter;
   raw: string;
-  html?: string;
-  filePath?: string;
 };
 
 async function bundleLocal(slug: string, contentDir: string): Promise<MDXPostResult | undefined> {
   const local = getLocalPost(slug, contentDir);
   if (!local) return undefined;
-  const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({ file: local.filePath, cwd: path.resolve(contentDir), ...mdxOptions() });
-  return { slug: local.slug, code, frontmatter, raw: local.mdx, filePath: local.filePath };
+  const { code, frontmatter } = await bundleMDX<BlogFrontmatter>({
+    file: local.filePath,
+    cwd: path.resolve(contentDir),
+    ...mdxOptions(),
+  });
+  return { slug: local.slug, code, frontmatter, raw: local.mdx };
 }
 
 async function bundleExternal(slug: string, externalBlogs: ExternalPostInput[]): Promise<MDXPostResult | undefined> {
   if (externalBlogs.length === 0) return undefined;
   const post = (await externalPosts(externalBlogs)).find((p) => p.slug === slug);
   if (!post) return undefined;
-  const { code } = await bundleMDX<BlogFrontmatter>({ source: post.mdx, ...mdxOptions() });
-  return { slug: post.slug, code, frontmatter: post.frontmatter, raw: post.mdx, html: post.html, filePath: post.filePath };
+  return { slug: post.slug, markdown: post.mdx, frontmatter: post.frontmatter, raw: post.mdx };
 }
 
 // --- Exported functions ---
@@ -174,7 +173,7 @@ export async function allPosts(contentDir: string): Promise<BlogPostSource[]> {
 }
 
 export async function externalPosts(inputs: ExternalPostInput[]): Promise<BlogPostSource[]> {
-  return (await Promise.all(inputs.map(fetchExternalPost))).filter((p) => p.frontmatter?.draft !== true);
+  return (await Promise.all(inputs.map(fetchExternalPost))).filter((p) => p.frontmatter.draft !== true);
 }
 
 export async function MDXPost(
