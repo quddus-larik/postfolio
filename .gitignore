@@ -47,3 +47,6 @@ next-env.d.ts
 
 # heroui-agents-md
 .heroui-docs
+
+# mimocode
+.mimocode
