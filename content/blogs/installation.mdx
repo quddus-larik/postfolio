@@ -251,7 +251,7 @@ External posts are rendered using `react-markdown` with GFM support (tables, str
 | Type | Description |
 |------|-------------|
 | string | URL to Dev.to article API endpoint |
-| { url: string; extraFrontmatter?: object } | URL with additional frontmatter to merge |
+| object | `url` string + optional `extraFrontmatter` object |
 
 ### Client Components (postfolio/renderer)
 
@@ -272,5 +272,5 @@ External posts are rendered using `react-markdown` with GFM support (tables, str
 |------|--------|
 | BlogFrontmatter | title, description, date, tags, author, draft, cover, cover_image |
 | BlogPostSource | slug, filename, filePath, mdx, frontmatter |
-| ExternalPostInput | string or { url, extraFrontmatter } |
+| ExternalPostInput | string or object with url and extraFrontmatter |
 | TOCItem | level, text, slug |
