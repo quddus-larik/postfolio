@@ -32,7 +32,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <div className="bg-background py-4 -mx-4 px-4 space-y-3">
         <div className="flex flex-row gap-3">
           <Avatar>
-            <Avatar.Image src={post.frontmatter["avatar"] as string} alt="avatar" />
+            <Avatar.Image src={"https://github.com/quddus-larik.png"} alt="avatar" />
             <Avatar.Fallback>QL</Avatar.Fallback>
           </Avatar>
           <div className="flex flex-col gap-1 justify-start">
