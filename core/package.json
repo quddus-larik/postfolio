@@ -1,6 +1,6 @@
 {
   "name": "postfolio",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "type": "module",
   "main": "./dist/server.js",
   "types": "./dist/server.d.ts",
@@ -43,9 +43,10 @@
     "esbuild": "^0.28.0",
     "gray-matter": "^4.0.3",
     "mdx-bundler": "^10.1.1",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1",
-    "server-only": "^0.0.1",
-    "unist-util-visit": "^5.1.0"
+    "server-only": "^0.0.1"
   },
   "peerDependencies": {
     "react": ">=19"
