@@ -1,36 +1,20 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+---
+title: "Possfolio"
+description: "A lightweight, plug-and-play adapter for MDX-based blogs and portfolios. It supports local MDX files, Dev.to, and GitHub Markdown, allowing you to integrate content seamlessly into your own UI design system."
+---
 
-## Getting Started
+### Features:
 
-First, run the development server:
+* **Multi-Source Content Fetching:** Seamlessly aggregates blog posts and markdown content from three distinct sources:
+* **Local Files:** Parses local `.md` and `.mdx` content using frontmatter (`gray-matter`).
+* **Dev.to:** Imports public Dev.to articles via their REST API while preserving your own design system.
+* **GitHub:** Retrieves raw Markdown files directly from public GitHub repositories.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+* **Unified Data Schema:** Normalizes diverse content sources into a single, standardized `PostItem` interface (`name`, `slug`, `path`, `meta`, `content`) for simple consumption in your UI.
+* **UI & Design System Agnostic:** Acts strictly as an architectural data adapter/content layer, letting you style and render content with any design system or UI library.
+* **Static Generation Support:** Built for static site generation (SSG) in Next.js, allowing blog posts to be built statically at compile time for optimal performance.
+* **Plug-and-Play Configuration:** Easily configures local file directories, Dev.to article URLs, and GitHub file paths within a central configuration file (`postfolio.config.ts`).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Postfolio is an adaptable content adapter that unifies local MDX files, Dev.to articles, and GitHub Markdown into a single, clean data interface without manual copy-pasting.
