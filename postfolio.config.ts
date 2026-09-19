@@ -2,7 +2,7 @@ const postfolioConfig = {
     localPosts: {
         dir: "content/posts"
     },
-    githubMd: [],
+    githubContents: ["https://github.com/quddus-larik/postfolio/blob/main/README.md"],
     devToPosts: []
 };
 
